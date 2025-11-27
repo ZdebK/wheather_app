@@ -62,6 +62,6 @@ process.on('SIGTERM', async () => {
 });
 
 startServer().catch((err) => {
-  console.error('❌ Błąd podczas startu serwera:', err);
+  console.error('❌ Error starting server:', err);
   process.exit(1);
 });
