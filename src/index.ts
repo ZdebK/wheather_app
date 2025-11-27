@@ -1,67 +1,115 @@
-import express from 'express';
+import 'reflect-metadata';
+import express, { Application } from 'express';
 import { graphqlHTTP } from 'express-graphql';
-import { buildSchema } from 'graphql';
-import pool, { testConnection } from './db';
+import dotenv from 'dotenv';
+import { AppDataSource, initializeDatabase } from './data-source';
+import { schema } from './graphql/schema';
+import { PropertyResolvers } from './resolvers/PropertyResolvers';
+import logger from './utils/logger';
 
-const schema = buildSchema(`
-  type Query {
-    hello: String
-    weather(city: String!): Weather
-  }
+// Load environment variables
+dotenv.config();
 
-  type Weather {
-    city: String
-    temperature: Float
-    description: String
-  }
-`);
+const PORT = process.env.PORT || 4000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-const root = {
-  hello: () => {
-    return 'welcome!';
-  },
-  weather: ({ city }: { city: string }) => {
-    return {
-      city: city,
-      temperature: 15.5,
-      description: 'Partly cloudy'
-    };
-  }
+/**
+ * Create Express application with GraphQL endpoint
+ */
+const createApp = (): Application => {
+  const app = express();
+
+  // Initialize resolvers
+  const propertyResolvers = new PropertyResolvers();
+
+  // GraphQL endpoint
+  app.use(
+    '/graphql',
+    graphqlHTTP({
+      schema,
+      rootValue: propertyResolvers.getRootValue(),
+      graphiql: NODE_ENV === 'development',
+      customFormatErrorFn: (error) => {
+        logger.error('GraphQL Error', { 
+          message: error.message,
+          locations: error.locations,
+          path: error.path 
+        });
+        return {
+          message: error.message,
+          locations: error.locations,
+          path: error.path,
+        };
+      },
+    })
+  );
+
+  // Health check endpoint
+  app.get('/health', async (req, res) => {
+    try {
+      const dbHealthy = AppDataSource.isInitialized;
+      res.status(dbHealthy ? 200 : 503).json({
+        status: dbHealthy ? 'healthy' : 'unhealthy',
+        database: dbHealthy ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: 'unhealthy',
+        error: 'Health check failed',
+      });
+    }
+  });
+
+  return app;
 };
 
-const app = express();
-const PORT = process.env.PORT || 4000;
+/**
+ * Start the server with database initialization
+ */
+const startServer = async (): Promise<void> => {
+  try {
+    // Initialize database connection
+    await initializeDatabase();
 
-// Endpoint GraphQL
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true,
-}));
+    // Create and start Express app
+    const app = createApp();
 
-// Database connection and server start
-const startServer = async () => {
-  // Test database connection before starting the server
-  const dbConnected = await testConnection();
-  
-  if (!dbConnected) {
-    console.error('❌ Cannot start server - no database connection');
+    app.listen(PORT, () => {
+      logger.info(`🚀 Server running in ${NODE_ENV} mode`);
+      logger.info(`📍 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+      logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
+      if (NODE_ENV === 'development') {
+        logger.info(`🎮 GraphQL Playground available at /graphql`);
+      }
+    });
+  } catch (error) {
+    logger.error('❌ Failed to start server', { error });
     process.exit(1);
   }
-
-  app.listen(PORT, () => {
-    console.log(`🚀 GraphQL server running at http://localhost:${PORT}/graphql`);
-  });
 };
 
-// Graceful shutdown - close connections on shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, closing database pool...');
-  await pool.end();
-  process.exit(0);
-});
+/**
+ * Graceful shutdown handler
+ */
+const gracefulShutdown = async (signal: string): Promise<void> => {
+  logger.info(`${signal} received, closing gracefully...`);
 
-startServer().catch((err) => {
-  console.error('❌ Error starting server:', err);
-  process.exit(1);
-});
+  try {
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+      logger.info('✅ Database connections closed');
+    }
+    process.exit(0);
+  } catch (error) {
+    logger.error('❌ Error during shutdown', { error });
+    process.exit(1);
+  }
+};
+
+// Register shutdown handlers
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Start the server
+startServer();
