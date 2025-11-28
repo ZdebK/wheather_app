@@ -1,22 +1,32 @@
 import { validate } from 'class-validator';
 import { Property } from '../entities/Property';
 import { PropertyRepository } from '../repositories/PropertyRepository';
-import { WeatherService } from './WeatherService';
+import { WeatherService, IWeatherService } from './WeatherService';
 import { CreatePropertyInput, PropertyFilter, PropertySort } from '../types/property.types';
 import { HandleErrors } from '../decorators/error-handler';
 import { ValidationError, NotFoundError } from '../errors/custom-errors';
 
 /**
+ * PropertyService interface - defines contract for property operations
+ */
+export interface IPropertyService {
+  createProperty(input: CreatePropertyInput): Promise<Property>;
+  getAllProperties(filter?: PropertyFilter, sort?: PropertySort): Promise<Property[]>;
+  getPropertyById(id: string): Promise<Property>;
+  deleteProperty(id: string): Promise<boolean>;
+}
+
+/**
  * PropertyService - Business Logic Layer
  * Uses @HandleErrors decorator for automatic error handling and logging
  */
-export class PropertyService {
+export class PropertyService implements IPropertyService {
   private propertyRepository: PropertyRepository;
-  private weatherService: WeatherService;
+  private weatherService: IWeatherService;
 
   constructor(
     propertyRepository: PropertyRepository = new PropertyRepository(),
-    weatherService: WeatherService = WeatherService.getInstance()
+    weatherService: IWeatherService = WeatherService.getInstance()
   ) {
     this.propertyRepository = propertyRepository;
     this.weatherService = weatherService;
@@ -24,6 +34,19 @@ export class PropertyService {
 
   @HandleErrors
   async createProperty(input: CreatePropertyInput): Promise<Property> {
+    await this.validate(input);
+
+    const fullAddress = this.buildFullAddress(input);
+    const { weatherData, lat, long } = await this.weatherService.fetchWeatherData(fullAddress);
+
+    const propertyData = this.buildPropertyData(input, weatherData, lat, long);
+    return await this.propertyRepository.create(propertyData);
+  }
+
+  /**
+   * Validate input using class-validator - DRY principle
+   */
+  private async validate(input: CreatePropertyInput): Promise<void> {
     const inputInstance = Object.assign(new CreatePropertyInput(), input);
     const errors = await validate(inputInstance);
 
@@ -33,11 +56,25 @@ export class PropertyService {
         .join('; ');
       throw new ValidationError(`Validation failed: ${errorMessages}`, errors);
     }
+  }
 
-    const fullAddress = `${input.street}, ${input.city}, ${input.state} ${input.zipCode}`;
-    const { weatherData, lat, long } = await this.weatherService.fetchWeatherData(fullAddress);
+  /**
+   * Build full address string - DRY principle
+   */
+  private buildFullAddress(input: CreatePropertyInput): string {
+    return `${input.street}, ${input.city}, ${input.state} ${input.zipCode}`;
+  }
 
-    const propertyData: Partial<Property> = {
+  /**
+   * Build property data object - DRY principle
+   */
+  private buildPropertyData(
+    input: CreatePropertyInput,
+    weatherData: any,
+    lat: number,
+    long: number
+  ): Partial<Property> {
+    return {
       street: input.street,
       city: input.city,
       state: input.state,
@@ -46,8 +83,6 @@ export class PropertyService {
       lat,
       long,
     };
-
-    return await this.propertyRepository.create(propertyData);
   }
 
   @HandleErrors

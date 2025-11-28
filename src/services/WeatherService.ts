@@ -5,10 +5,21 @@ import { WeatherAPIError } from '../errors/custom-errors';
 import logger from '../utils/logger';
 
 /**
+ * WeatherService interface - defines contract for weather operations
+ */
+export interface IWeatherService {
+  fetchWeatherData(address: string): Promise<{
+    weatherData: WeatherData;
+    lat: number;
+    long: number;
+  }>;
+}
+
+/**
  * WeatherService - Singleton pattern
  * Handles communication with Weatherstack API
  */
-export class WeatherService {
+export class WeatherService implements IWeatherService {
   private static instance: WeatherService;
   private readonly apiKey: string;
   private readonly baseUrl = 'http://api.weatherstack.com/current';

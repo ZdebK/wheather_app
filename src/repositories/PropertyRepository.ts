@@ -3,6 +3,7 @@ import { AppDataSource } from '../data-source';
 import { Property } from '../entities/Property';
 import { PropertyFilter, PropertySort, SortOrder } from '../types/property.types';
 import logger from '../utils/logger';
+import { HandleErrors } from '../decorators/error-handler';
 
 /**
  * PropertyRepository - Repository Pattern
@@ -18,34 +19,26 @@ export class PropertyRepository {
   /**
    * Create and save a new property
    */
+  @HandleErrors
   async create(propertyData: Partial<Property>): Promise<Property> {
-    try {
-      const property = this.repository.create(propertyData);
-      const savedProperty = await this.repository.save(property);
-      logger.info(`Property created with ID: ${savedProperty.id}`);
-      return savedProperty;
-    } catch (error) {
-      logger.error('Error creating property', { error });
-      throw error;
-    }
+    const property = this.repository.create(propertyData);
+    const savedProperty = await this.repository.save(property);
+    this.logPropertyAction('created', savedProperty.id);
+    return savedProperty;
   }
 
   /**
    * Find all properties with optional filtering and sorting
    */
+  @HandleErrors
   async findAll(filter?: PropertyFilter, sort?: PropertySort): Promise<Property[]> {
-    try {
-      let queryBuilder = this.repository.createQueryBuilder('property');
-      queryBuilder = this.applyFilters(queryBuilder, filter);
-      queryBuilder = this.applySorting(queryBuilder, sort);
+    let queryBuilder = this.repository.createQueryBuilder('property');
+    queryBuilder = this.applyFilters(queryBuilder, filter);
+    queryBuilder = this.applySorting(queryBuilder, sort);
 
-      const properties = await queryBuilder.getMany();
-      logger.info(`Found ${properties.length} properties`);
-      return properties;
-    } catch (error) {
-      logger.error('Error finding properties', { error });
-      throw error;
-    }
+    const properties = await queryBuilder.getMany();
+    logger.info(`Found ${properties.length} properties`);
+    return properties;
   }
 
   /**
@@ -83,37 +76,36 @@ export class PropertyRepository {
   /**
    * Find a single property by ID
    */
+  @HandleErrors
   async findById(id: string): Promise<Property | null> {
-    try {
-      const property = await this.repository.findOne({ where: { id } });
-      if (property) {
-        logger.info(`Property found with ID: ${id}`);
-      } else {
-        logger.warn(`Property not found with ID: ${id}`);
-      }
-      return property;
-    } catch (error) {
-      logger.error(`Error finding property by ID: ${id}`, { error });
-      throw error;
+    const property = await this.repository.findOne({ where: { id } });
+    if (property) {
+      this.logPropertyAction('found', id);
+    } else {
+      logger.warn(`Property not found with ID: ${id}`);
     }
+    return property;
   }
 
   /**
    * Delete a property by ID
    */
+  @HandleErrors
   async delete(id: string): Promise<boolean> {
-    try {
-      const result = await this.repository.delete(id);
-      const deleted = (result.affected ?? 0) > 0;
-      if (deleted) {
-        logger.info(`Property deleted with ID: ${id}`);
-      } else {
-        logger.warn(`No property found to delete with ID: ${id}`);
-      }
-      return deleted;
-    } catch (error) {
-      logger.error(`Error deleting property with ID: ${id}`, { error });
-      throw error;
+    const result = await this.repository.delete(id);
+    const deleted = (result.affected ?? 0) > 0;
+    if (deleted) {
+      this.logPropertyAction('deleted', id);
+    } else {
+      logger.warn(`No property found to delete with ID: ${id}`);
     }
+    return deleted;
+  }
+
+  /**
+   * Helper to log property actions - DRY principle
+   */
+  private logPropertyAction(action: 'created' | 'found' | 'deleted', id: string): void {
+    logger.info(`Property ${action} with ID: ${id}`);
   }
 }

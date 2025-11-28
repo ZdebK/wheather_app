@@ -1,4 +1,4 @@
-import { PropertyService } from '../services/PropertyService';
+import { PropertyService, IPropertyService } from '../services/PropertyService';
 import { CreatePropertyInput, PropertyFilter, PropertySort } from '../types/property.types';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -8,9 +8,9 @@ import GraphQLJSON from 'graphql-type-json';
  * Error handling and logging managed by @HandleErrors decorator in services
  */
 export class PropertyResolvers {
-  private propertyService: PropertyService;
+  private propertyService: IPropertyService;
 
-  constructor(propertyService: PropertyService = new PropertyService()) {
+  constructor(propertyService: IPropertyService = new PropertyService()) {
     this.propertyService = propertyService;
   }
 
