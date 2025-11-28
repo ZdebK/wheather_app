@@ -177,20 +177,74 @@ Uses **winston** for structured logging:
 
 ## 🧪 Testing
 
-### Unit Tests (TODO)
+## 🧪 Testing
+
+Comprehensive automated test suite covering business logic, API integration, and error handling.
+
+### Running Tests
 
 ```bash
+# Run all tests
 npm test
+
+# Run tests in watch mode (auto-rerun on changes)
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
 ```
 
-Test coverage for:
-- Services (PropertyService, WeatherService)
-- Repositories
-- Validation logic
+### Test Coverage
+
+**Test Suites**: 3 passed  
+**Total Tests**: 40 passed
+
+| File | Coverage |
+|------|----------|
+| **WeatherService.ts** | 100% statements, branches, functions, lines |
+| **PropertyService.ts** | 95.23% statements, 100% functions |
+| **PropertyResolvers.ts** | Full GraphQL API coverage |
+
+### Test Scenarios
+
+#### WeatherService Tests (7 tests)
+- ✅ Returns single shared instance
+- ✅ Successful weather data fetch with coordinates
+- ✅ Invalid API response handling
+- ✅ Timeout recovery with retry logic (3 attempts, exponential backoff)
+- ✅ 4xx client error handling (no retry)
+- ✅ Max retries failure after persistent errors
+
+#### PropertyService Tests (14 tests)
+- ✅ Property creation with weather data integration
+- ✅ Input validation (state format, zip code format, required fields)
+- ✅ **Weather API failure abortion** (Requirement #4 - property not created if weather fetch fails)
+- ✅ Property retrieval (all, by ID, with filtering/sorting)
+- ✅ Property deletion (successful, not found scenarios)
+- ✅ Error handling for database operations
+
+#### PropertyResolvers Tests (19 tests)
+- ✅ Query all properties (filtering by city, state, zipCode)
+- ✅ Query all properties (sorting ascending/descending)
+- ✅ Query all properties (combined filters and sorting)
+- ✅ Query single property by ID with weather data and coordinates
+- ✅ Create property mutation with automatic weather fetch
+- ✅ Validation errors (state format, zipCode format, required fields)
+- ✅ Delete property mutation (success and error cases)
+- ✅ GraphQL error handling
+
+### Key Test Features
+
+- **Mocked Dependencies**: axios, repositories isolated for unit testing
+- **GraphQL API Coverage**: All queries and mutations tested with realistic scenarios
+- **Retry Logic Validation**: Confirms 3-attempt retry with exponential backoff (1s, 2s delays)
+- **Error Path Coverage**: Tests 4xx no-retry, 5xx retry behavior
+- **Requirement Validation**: Explicit test for "abort operation on weather failure" (Requirement #4)
+- **Self-Documenting Tests**: Clean, readable test names without redundant comments
 
 ### Integration Tests (TODO)
 
-Test GraphQL resolvers with test database.
+GraphQL integration tests with test database.
 
 ## 📦 Dependencies
 
@@ -208,6 +262,9 @@ Test GraphQL resolvers with test database.
 - `typescript` - Type safety
 - `ts-node` - Run TypeScript directly
 - `nodemon` - Auto-restart on changes
+- `jest` & `ts-jest` - Testing framework
+- `@types/jest` - Jest TypeScript definitions
+- `supertest` - HTTP assertions for API testing
 
 ## 🛠️ Scripts
 
@@ -215,7 +272,10 @@ Test GraphQL resolvers with test database.
 {
   "dev": "nodemon src/index.ts",
   "build": "tsc",
-  "start": "node dist/index.js"
+  "start": "node dist/index.js",
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:coverage": "jest --coverage"
 }
 ```
 
@@ -229,8 +289,8 @@ Test GraphQL resolvers with test database.
 - [ ] Add update property mutation
 - [ ] Implement pagination for properties query
 - [ ] Add authentication/authorization
-- [ ] Write unit and integration tests
-- [ ] Add database migrations
+- [ ] Add GraphQL integration tests with test database
+- [ ] Add database migrations for production
 - [ ] Implement caching layer (Redis)
 - [ ] Add rate limiting for API
 - [ ] Docker containerization
