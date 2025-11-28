@@ -10,20 +10,20 @@ const poolConfig: PoolConfig = {
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  
+
   // Security & Performance settings
   ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false 
+    rejectUnauthorized: false,
   } : false,
-  
+
   // Connection pool settings
   max: 20, // max connections in pool
   idleTimeoutMillis: 30000, // close idle connections after 30s
   connectionTimeoutMillis: 2000, // timeout for new connection
-};
+},
 
-// Singleton pattern - one pool instance for the entire app
-const pool = new Pool(poolConfig);
+  // Singleton pattern - one pool instance for the entire app
+  pool = new Pool(poolConfig);
 
 // Event handlers for monitoring
 pool.on('connect', () => {
@@ -36,8 +36,8 @@ pool.on('error', (err) => {
 });
 
 export const testConnection = async (): Promise<boolean> => {
-  const client = await pool.connect();
-  const result = await client.query('SELECT NOW()');
+  const client = await pool.connect(),
+    result = await client.query('SELECT NOW()');
   client.release();
   logContext.database('Connection test successful', { timestamp: result.rows[0].now });
   return true;

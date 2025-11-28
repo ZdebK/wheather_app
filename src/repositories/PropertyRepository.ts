@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Property } from '../entities/Property';
-import { PropertyFilter, PropertySort, SortOrder } from '../types/property.types';
-import logger, { logContext } from '../utils/logger';
+import { IPropertyFilter, IPropertySort, SortOrder } from '../types/property.types';
+import logger from '../utils/logger';
 import { HandleErrors } from '../decorators/error-handler';
 
 /**
@@ -21,8 +21,8 @@ export class PropertyRepository {
    */
   @HandleErrors
   async create(propertyData: Partial<Property>): Promise<Property> {
-    const property = this.repository.create(propertyData);
-    const savedProperty = await this.repository.save(property);
+    const property = this.repository.create(propertyData),
+      savedProperty = await this.repository.save(property);
     logger.info(`Property created: ${savedProperty.id}`);
     return savedProperty;
   }
@@ -31,7 +31,7 @@ export class PropertyRepository {
    * Find all properties with optional filtering and sorting
    */
   @HandleErrors
-  async findAll(filter?: PropertyFilter, sort?: PropertySort): Promise<Property[]> {
+  async findAll(filter?: IPropertyFilter, sort?: IPropertySort): Promise<Property[]> {
     let queryBuilder = this.repository.createQueryBuilder('property');
     queryBuilder = this.applyFilters(queryBuilder, filter);
     queryBuilder = this.applySorting(queryBuilder, sort);
@@ -43,8 +43,10 @@ export class PropertyRepository {
   /**
    * Apply filters to query builder
    */
-  private applyFilters(queryBuilder: any, filter?: PropertyFilter): any {
-    if (!filter) return queryBuilder;
+  private applyFilters(queryBuilder: any, filter?: IPropertyFilter): any {
+    if (!filter) {
+      return queryBuilder;
+    }
 
     if (filter.city) {
       queryBuilder.andWhere('property.city = :city', { city: filter.city });
@@ -62,7 +64,7 @@ export class PropertyRepository {
   /**
    * Apply sorting to query builder
    */
-  private applySorting(queryBuilder: any, sort?: PropertySort): any {
+  private applySorting(queryBuilder: any, sort?: IPropertySort): any {
     if (sort?.createdAt) {
       queryBuilder.orderBy('property.createdAt', sort.createdAt);
     } else {
@@ -86,8 +88,8 @@ export class PropertyRepository {
    */
   @HandleErrors
   async delete(id: string): Promise<boolean> {
-    const result = await this.repository.delete(id);
-    const deleted = (result.affected ?? 0) > 0;
+    const result = await this.repository.delete(id),
+      deleted = (result.affected ?? 0) > 0;
     return deleted;
   }
 }

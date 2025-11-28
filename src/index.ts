@@ -10,84 +10,84 @@ import logger, { logContext } from './utils/logger';
 // Load environment variables
 dotenv.config();
 
-const PORT = process.env.PORT || 4000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = process.env.PORT || 4000,
+  NODE_ENV = process.env.NODE_ENV || 'development',
 
-/**
+  /**
  * Create Express application with GraphQL endpoint
  */
-const createApp = (): Application => {
-  const app = express();
+  createApp = (): Application => {
+    const app = express(),
 
-  // Initialize resolvers
-  const propertyResolvers = new PropertyResolvers();
+      // Initialize resolvers
+      propertyResolvers = new PropertyResolvers();
 
-  // GraphQL endpoint
-  app.use(
-    '/graphql',
-    graphqlHTTP({
-      schema,
-      rootValue: propertyResolvers.getRootValue(),
-      graphiql: NODE_ENV === 'development',
-      customFormatErrorFn: (error) => {
-        logContext.error('GraphQL Error', error, {
-          locations: error.locations,
-          path: error.path,
-        });
-        return {
-          message: error.message,
-          locations: error.locations,
-          path: error.path,
-        };
-      },
-    })
-  );
+    // GraphQL endpoint
+    app.use(
+      '/graphql',
+      graphqlHTTP({
+        schema,
+        rootValue: propertyResolvers.getRootValue(),
+        graphiql: NODE_ENV === 'development',
+        customFormatErrorFn: (error) => {
+          logContext.error('GraphQL Error', error, {
+            locations: error.locations,
+            path: error.path,
+          });
+          return {
+            message: error.message,
+            locations: error.locations,
+            path: error.path,
+          };
+        },
+      }),
+    );
 
-  // Health check endpoint
-  app.get('/health', async (req, res) => {
-    const dbHealthy = AppDataSource.isInitialized;
-    res.status(dbHealthy ? 200 : 503).json({
-      status: dbHealthy ? 'healthy' : 'unhealthy',
-      database: dbHealthy ? 'connected' : 'disconnected',
-      timestamp: new Date().toISOString(),
+    // Health check endpoint
+    app.get('/health', async (req, res) => {
+      const dbHealthy = AppDataSource.isInitialized;
+      res.status(dbHealthy ? 200 : 503).json({
+        status: dbHealthy ? 'healthy' : 'unhealthy',
+        database: dbHealthy ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString(),
+      });
     });
-  });
 
-  return app;
-};
+    return app;
+  },
 
-/**
+  /**
  * Start the server with database initialization
  */
-const startServer = async (): Promise<void> => {
+  startServer = async (): Promise<void> => {
   // Initialize database connection
-  await initializeDatabase();
+    await initializeDatabase();
 
-  // Create and start Express app
-  const app = createApp();
+    // Create and start Express app
+    const app = createApp();
 
-  app.listen(PORT, () => {
-    logger.info(`🚀 Server running in ${NODE_ENV} mode`);
-    logger.info(`📍 GraphQL endpoint: http://localhost:${PORT}/graphql`);
-    logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
-    if (NODE_ENV === 'development') {
-      logger.info(`🎮 GraphQL Playground available at /graphql`);
-    }
-  });
-};
+    app.listen(PORT, () => {
+      logger.info(`🚀 Server running in ${NODE_ENV} mode`);
+      logger.info(`📍 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+      logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
+      if (NODE_ENV === 'development') {
+        logger.info('🎮 GraphQL Playground available at /graphql');
+      }
+    });
+  },
 
-/**
+  /**
  * Graceful shutdown handler
  */
-const gracefulShutdown = async (signal: string): Promise<void> => {
-  logger.info(`${signal} received, closing gracefully...`);
+  gracefulShutdown = async (signal: string): Promise<void> => {
+    logger.info(`${signal} received, closing gracefully...`);
 
-  if (AppDataSource.isInitialized) {
-    await AppDataSource.destroy();
-    logger.info('✅ Database connections closed');
-  }
-  process.exit(0);
-};
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+      logger.info('✅ Database connections closed');
+    }
+    process.exit(0);
+  };
 
 // Register shutdown handlers
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

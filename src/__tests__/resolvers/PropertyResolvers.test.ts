@@ -7,9 +7,9 @@ import { SortOrder } from '../../types/property.types';
 jest.mock('../../services/PropertyService');
 
 describe('PropertyResolvers - GraphQL API', () => {
-  let resolvers: any;
-  let mockPropertyService: jest.Mocked<PropertyService>;
-  let propertyResolvers: PropertyResolvers;
+  let resolvers: any,
+    mockPropertyService: jest.Mocked<PropertyService>,
+    propertyResolvers: PropertyResolvers;
 
   beforeEach(() => {
     // Create mock service
@@ -22,10 +22,10 @@ describe('PropertyResolvers - GraphQL API', () => {
 
     // Create resolver instance with mocked service
     propertyResolvers = new PropertyResolvers(mockPropertyService);
-    
+
     // Get resolvers root object
     resolvers = propertyResolvers.getRootValue();
-    
+
     jest.clearAllMocks();
   });
 
@@ -136,7 +136,7 @@ describe('PropertyResolvers - GraphQL API', () => {
 
       expect(mockPropertyService.getAllProperties).toHaveBeenCalledWith(
         { city: 'Phoenix' },
-        { createdAt: SortOrder.DESC }
+        { createdAt: SortOrder.DESC },
       );
       expect(result).toHaveLength(1);
     });
@@ -183,11 +183,11 @@ describe('PropertyResolvers - GraphQL API', () => {
 
     it('throws error when ID does not exist', async () => {
       mockPropertyService.getPropertyById.mockRejectedValue(
-        new Error('Property with ID invalid-id not found')
+        new Error('Property with ID invalid-id not found'),
       );
 
       await expect(resolvers.property({ id: 'invalid-id' })).rejects.toThrow(
-        'Property with ID invalid-id not found'
+        'Property with ID invalid-id not found',
       );
     });
 
@@ -213,27 +213,27 @@ describe('PropertyResolvers - GraphQL API', () => {
 
   describe('Mutation: createProperty', () => {
     const validInput = {
-      street: '15528 E Golden Eagle Blvd',
-      city: 'Fountain Hills',
-      state: 'AZ',
-      zipCode: '85268',
-    };
-
-    const createdProperty: Property = {
-      id: 'new-id-123',
-      ...validInput,
-      weatherData: {
-        temperature: 75,
-        weather_descriptions: ['Sunny'],
-        humidity: 35,
-        wind_speed: 5,
-        observation_time: '05:30 PM',
-        feelslike: 73,
+        street: '15528 E Golden Eagle Blvd',
+        city: 'Fountain Hills',
+        state: 'AZ',
+        zipCode: '85268',
       },
-      lat: 33.609,
-      long: -111.729,
-      createdAt: new Date(),
-    };
+
+      createdProperty: Property = {
+        id: 'new-id-123',
+        ...validInput,
+        weatherData: {
+          temperature: 75,
+          weather_descriptions: ['Sunny'],
+          humidity: 35,
+          wind_speed: 5,
+          observation_time: '05:30 PM',
+          feelslike: 73,
+        },
+        lat: 33.609,
+        long: -111.729,
+        createdAt: new Date(),
+      };
 
     it('creates property with weather data automatically', async () => {
       mockPropertyService.createProperty.mockResolvedValue(createdProperty);
@@ -249,43 +249,43 @@ describe('PropertyResolvers - GraphQL API', () => {
     it('rejects invalid state format', async () => {
       const invalidInput = { ...validInput, state: 'az' };
       mockPropertyService.createProperty.mockRejectedValue(
-        new Error('State must be uppercase letters (e.g., AZ)')
+        new Error('State must be uppercase letters (e.g., AZ)'),
       );
 
       await expect(resolvers.createProperty({ input: invalidInput })).rejects.toThrow(
-        'State must be uppercase letters'
+        'State must be uppercase letters',
       );
     });
 
     it('rejects invalid zipCode format', async () => {
       const invalidInput = { ...validInput, zipCode: 'ABCDE' };
       mockPropertyService.createProperty.mockRejectedValue(
-        new Error('Zip code must contain only digits')
+        new Error('Zip code must contain only digits'),
       );
 
       await expect(resolvers.createProperty({ input: invalidInput })).rejects.toThrow(
-        'Zip code must contain only digits'
+        'Zip code must contain only digits',
       );
     });
 
     it('rejects missing required fields', async () => {
       const invalidInput = { ...validInput, street: '' };
       mockPropertyService.createProperty.mockRejectedValue(
-        new Error('Street is required')
+        new Error('Street is required'),
       );
 
       await expect(resolvers.createProperty({ input: invalidInput })).rejects.toThrow(
-        'Street is required'
+        'Street is required',
       );
     });
 
     it('aborts when weather API fails', async () => {
       mockPropertyService.createProperty.mockRejectedValue(
-        new Error('Failed to fetch weather data: timeout')
+        new Error('Failed to fetch weather data: timeout'),
       );
 
       await expect(resolvers.createProperty({ input: validInput })).rejects.toThrow(
-        'Failed to fetch weather data'
+        'Failed to fetch weather data',
       );
     });
   });
@@ -302,11 +302,11 @@ describe('PropertyResolvers - GraphQL API', () => {
 
     it('throws error when property does not exist', async () => {
       mockPropertyService.deleteProperty.mockRejectedValue(
-        new Error('Property with ID invalid-id not found')
+        new Error('Property with ID invalid-id not found'),
       );
 
       await expect(resolvers.deleteProperty({ id: 'invalid-id' })).rejects.toThrow(
-        'Property with ID invalid-id not found'
+        'Property with ID invalid-id not found',
       );
     });
   });

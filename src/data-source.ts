@@ -18,7 +18,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   } : false,
   synchronize: process.env.NODE_ENV === 'development', // Auto-create tables in dev
   logging: process.env.NODE_ENV === 'development',

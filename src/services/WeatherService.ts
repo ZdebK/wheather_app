@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { WeatherstackResponse, WeatherData } from '../types/weather.types';
+import { IWeatherstackResponse, IWeatherData } from '../types/weather.types';
 import { HandleErrors } from '../decorators/error-handler';
 import { WeatherAPIError } from '../errors/custom-errors';
 import logger, { logContext } from '../utils/logger';
@@ -9,7 +9,7 @@ import logger, { logContext } from '../utils/logger';
  */
 export interface IWeatherService {
   fetchWeatherData(address: string): Promise<{
-    weatherData: WeatherData;
+    weatherData: IWeatherData;
     lat: number;
     long: number;
   }>;
@@ -42,7 +42,7 @@ export class WeatherService implements IWeatherService {
 
   @HandleErrors
   async fetchWeatherData(address: string): Promise<{
-    weatherData: WeatherData;
+    weatherData: IWeatherData;
     lat: number;
     long: number;
   }> {
@@ -68,12 +68,12 @@ export class WeatherService implements IWeatherService {
     throw new WeatherAPIError(
       `Failed to fetch weather data after ${this.maxRetries} attempts: ${lastError?.message}`,
       undefined,
-      this.maxRetries
+      this.maxRetries,
     );
   }
 
-  private async makeAPIRequest(address: string, attempt: number): Promise<WeatherstackResponse> {
-    const response = await axios.get<WeatherstackResponse>(this.baseUrl, {
+  private async makeAPIRequest(address: string, _attempt: number): Promise<IWeatherstackResponse> {
+    const response = await axios.get<IWeatherstackResponse>(this.baseUrl, {
       params: {
         access_key: this.apiKey,
         query: address,
@@ -88,20 +88,20 @@ export class WeatherService implements IWeatherService {
     return response.data;
   }
 
-  private parseResponse(response: WeatherstackResponse) {
-    const { location, current } = response;
+  private parseResponse(response: IWeatherstackResponse) {
+    const { location, current } = response,
 
-    const weatherData: WeatherData = {
-      temperature: current.temperature,
-      weather_descriptions: current.weather_descriptions,
-      humidity: current.humidity,
-      wind_speed: current.wind_speed,
-      observation_time: current.observation_time,
-      feelslike: current.feelslike,
-    };
+      weatherData: IWeatherData = {
+        temperature: current.temperature,
+        weather_descriptions: current.weather_descriptions,
+        humidity: current.humidity,
+        wind_speed: current.wind_speed,
+        observation_time: current.observation_time,
+        feelslike: current.feelslike,
+      },
 
-    const lat = parseFloat(location.lat);
-    const long = parseFloat(location.lon);
+      lat = parseFloat(location.lat),
+      long = parseFloat(location.lon);
 
     return { weatherData, lat, long };
   }
@@ -122,7 +122,7 @@ export class WeatherService implements IWeatherService {
     if (error.response && error.response.status >= 400 && error.response.status < 500) {
       throw new WeatherAPIError(
         `Failed to fetch weather data: ${error.message}`,
-        error.response.status
+        error.response.status,
       );
     }
 

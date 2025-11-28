@@ -6,29 +6,29 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeor
 @Entity('properties')
 export class Property {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+    id: string;
 
   @Column({ type: 'varchar', length: 255 })
-  street: string;
+    street: string;
 
   @Column({ type: 'varchar', length: 100 })
-  city: string;
+    city: string;
 
   @Column({ type: 'varchar', length: 2 })
-  state: string;
+    state: string;
 
   @Column({ type: 'varchar', length: 5 })
-  zipCode: string;
+    zipCode: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  weatherData: Record<string, any>;
+    weatherData: Record<string, any>;
 
   @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
-  lat: number;
+    lat: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
-  long: number;
+    long: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+    createdAt: Date;
 }

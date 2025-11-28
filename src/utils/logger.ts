@@ -1,60 +1,60 @@
 import winston from 'winston';
 import path from 'path';
 
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const LOG_LEVEL = process.env.LOG_LEVEL || (NODE_ENV === 'production' ? 'info' : 'debug');
+const NODE_ENV = process.env.NODE_ENV || 'development',
+  LOG_LEVEL = process.env.LOG_LEVEL || (NODE_ENV === 'production' ? 'info' : 'debug'),
 
-/**
+  /**
  * Custom log format for structured logging
  */
-const structuredFormat = winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
-  const contextStr = context ? `[${context}]` : '';
-  const metaStr = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
-  return `${timestamp} [${level}]${contextStr}: ${message}${metaStr}`;
-});
+  structuredFormat = winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
+    const contextStr = context ? `[${context}]` : '',
+      metaStr = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
+    return `${timestamp} [${level}]${contextStr}: ${message}${metaStr}`;
+  }),
 
-/**
+  /**
  * Winston logger configuration with structured logging
  * Supports console and file transports with contextual information
  */
-const logger = winston.createLogger({
-  level: LOG_LEVEL,
-  format: winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  defaultMeta: { service: 'weather-app' },
-  transports: [
+  logger = winston.createLogger({
+    level: LOG_LEVEL,
+    format: winston.format.combine(
+      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      winston.format.errors({ stack: true }),
+      winston.format.json(),
+    ),
+    defaultMeta: { service: 'weather-app' },
+    transports: [
     // Console transport - colored output for development
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        structuredFormat
-      ),
-    }),
-    
-    // File transport - all logs
-    new winston.transports.File({ 
-      filename: path.join('logs', 'combined.log'),
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      ),
-    }),
-    
-    // File transport - errors only
-    new winston.transports.File({ 
-      filename: path.join('logs', 'error.log'),
-      level: 'error',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      ),
-    }),
-  ],
-});
+      new winston.transports.Console({
+        format: winston.format.combine(
+          winston.format.colorize(),
+          winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+          structuredFormat,
+        ),
+      }),
+
+      // File transport - all logs
+      new winston.transports.File({
+        filename: path.join('logs', 'combined.log'),
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json(),
+        ),
+      }),
+
+      // File transport - errors only
+      new winston.transports.File({
+        filename: path.join('logs', 'error.log'),
+        level: 'error',
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json(),
+        ),
+      }),
+    ],
+  });
 
 /**
  * Contextual logging helpers for structured logs

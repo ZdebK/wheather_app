@@ -3,6 +3,8 @@ import { PropertyRepository } from '../../repositories/PropertyRepository';
 import { WeatherService } from '../../services/WeatherService';
 import { Property } from '../../entities/Property';
 import { SortOrder } from '../../types/property.types';
+// ValidationError and NotFoundError used in test expectations
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ValidationError, NotFoundError } from '../../errors/custom-errors';
 
 // Mock dependencies
@@ -10,9 +12,9 @@ jest.mock('../../repositories/PropertyRepository');
 jest.mock('../../services/WeatherService');
 
 describe('PropertyService', () => {
-  let propertyService: PropertyService;
-  let mockPropertyRepository: jest.Mocked<PropertyRepository>;
-  let mockWeatherService: jest.Mocked<WeatherService>;
+  let propertyService: PropertyService,
+    mockPropertyRepository: jest.Mocked<PropertyRepository>,
+    mockWeatherService: jest.Mocked<WeatherService>;
 
   beforeEach(() => {
     // Create mocks
@@ -36,31 +38,31 @@ describe('PropertyService', () => {
 
   describe('createProperty', () => {
     const validInput = {
-      street: '15528 E Golden Eagle Blvd',
-      city: 'Fountain Hills',
-      state: 'AZ',
-      zipCode: '85268',
-    };
-
-    const mockWeatherData = {
-      weatherData: {
-        temperature: 75,
-        weather_descriptions: ['Sunny'],
-        humidity: 35,
-        wind_speed: 5,
-        observation_time: '05:30 PM',
-        feelslike: 73,
+        street: '15528 E Golden Eagle Blvd',
+        city: 'Fountain Hills',
+        state: 'AZ',
+        zipCode: '85268',
       },
-      lat: 33.609,
-      long: -111.729,
-    };
 
-    const mockProperty: Property = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      ...validInput,
-      ...mockWeatherData,
-      createdAt: new Date(),
-    };
+      mockWeatherData = {
+        weatherData: {
+          temperature: 75,
+          weather_descriptions: ['Sunny'],
+          humidity: 35,
+          wind_speed: 5,
+          observation_time: '05:30 PM',
+          feelslike: 73,
+        },
+        lat: 33.609,
+        long: -111.729,
+      },
+
+      mockProperty: Property = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        ...validInput,
+        ...mockWeatherData,
+        createdAt: new Date(),
+      };
 
     it('should successfully create a property with weather data', async () => {
       mockWeatherService.fetchWeatherData.mockResolvedValueOnce(mockWeatherData);
@@ -70,7 +72,7 @@ describe('PropertyService', () => {
 
       expect(result).toEqual(mockProperty);
       expect(mockWeatherService.fetchWeatherData).toHaveBeenCalledWith(
-        '15528 E Golden Eagle Blvd, Fountain Hills, AZ 85268'
+        '15528 E Golden Eagle Blvd, Fountain Hills, AZ 85268',
       );
       expect(mockPropertyRepository.create).toHaveBeenCalledWith({
         street: validInput.street,
@@ -87,7 +89,7 @@ describe('PropertyService', () => {
       const invalidInput = { ...validInput, state: 'Arizona' };
 
       await expect(propertyService.createProperty(invalidInput)).rejects.toThrow(
-        /Validation failed.*State must be a 2-letter abbreviation/
+        /Validation failed.*State must be a 2-letter abbreviation/,
       );
 
       expect(mockWeatherService.fetchWeatherData).not.toHaveBeenCalled();
@@ -98,7 +100,7 @@ describe('PropertyService', () => {
       const invalidInput = { ...validInput, state: 'az' };
 
       await expect(propertyService.createProperty(invalidInput)).rejects.toThrow(
-        /Validation failed.*State must be uppercase letters/
+        /Validation failed.*State must be uppercase letters/,
       );
     });
 
@@ -106,7 +108,7 @@ describe('PropertyService', () => {
       const invalidInput = { ...validInput, zipCode: '1234' };
 
       await expect(propertyService.createProperty(invalidInput)).rejects.toThrow(
-        /Validation failed.*Zip code must be 5 digits/
+        /Validation failed.*Zip code must be 5 digits/,
       );
     });
 
@@ -114,7 +116,7 @@ describe('PropertyService', () => {
       const invalidInput = { ...validInput, zipCode: '8526A' };
 
       await expect(propertyService.createProperty(invalidInput)).rejects.toThrow(
-        /Validation failed.*Zip code must contain only digits/
+        /Validation failed.*Zip code must contain only digits/,
       );
     });
 
@@ -122,7 +124,7 @@ describe('PropertyService', () => {
       const invalidInput = { ...validInput, street: '' };
 
       await expect(propertyService.createProperty(invalidInput)).rejects.toThrow(
-        /Validation failed.*Street is required/
+        /Validation failed.*Street is required/,
       );
     });
 
@@ -131,7 +133,7 @@ describe('PropertyService', () => {
       mockWeatherService.fetchWeatherData.mockRejectedValueOnce(weatherError);
 
       await expect(propertyService.createProperty(validInput)).rejects.toThrow(
-        'Failed to fetch weather data: timeout'
+        'Failed to fetch weather data: timeout',
       );
 
       // Property should NOT be created if weather fetch fails
@@ -208,7 +210,7 @@ describe('PropertyService', () => {
       mockPropertyRepository.findById.mockResolvedValueOnce(null);
 
       await expect(propertyService.getPropertyById('invalid-id')).rejects.toThrow(
-        'Property with ID invalid-id not found'
+        'Property with ID invalid-id not found',
       );
     });
   });
@@ -227,7 +229,7 @@ describe('PropertyService', () => {
       mockPropertyRepository.delete.mockResolvedValueOnce(false);
 
       await expect(propertyService.deleteProperty('invalid-id')).rejects.toThrow(
-        'Property with ID invalid-id not found'
+        'Property with ID invalid-id not found',
       );
     });
   });

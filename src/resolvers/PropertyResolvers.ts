@@ -1,5 +1,5 @@
 import { PropertyService, IPropertyService } from '../services/PropertyService';
-import { CreatePropertyInput, PropertyFilter, PropertySort } from '../types/property.types';
+import { CreatePropertyInput, IPropertyFilter, IPropertySort } from '../types/property.types';
 import GraphQLJSON from 'graphql-type-json';
 
 /**
@@ -18,7 +18,7 @@ export class PropertyResolvers {
     return {
       JSON: GraphQLJSON,
 
-      properties: ({ filter, sort }: { filter?: PropertyFilter; sort?: PropertySort }) =>
+      properties: ({ filter, sort }: { filter?: IPropertyFilter; sort?: IPropertySort }) =>
         this.propertyService.getAllProperties(filter, sort),
 
       property: ({ id }: { id: string }) =>

@@ -3,10 +3,10 @@ import { WeatherService } from '../../services/WeatherService';
 
 // Mock axios
 jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedAxios = axios as jest.Mocked<typeof axios>,
 
-// Mock axios.isAxiosError
-const mockIsAxiosError = axios.isAxiosError as jest.MockedFunction<typeof axios.isAxiosError>;
+  // Mock axios.isAxiosError
+  mockIsAxiosError = axios.isAxiosError as jest.MockedFunction<typeof axios.isAxiosError>;
 
 describe('WeatherService', () => {
   let weatherService: WeatherService;
@@ -22,8 +22,8 @@ describe('WeatherService', () => {
 
   describe('Singleton Pattern', () => {
     it('returns the same instance on multiple calls', () => {
-      const instance1 = WeatherService.getInstance();
-      const instance2 = WeatherService.getInstance();
+      const instance1 = WeatherService.getInstance(),
+        instance2 = WeatherService.getInstance();
       expect(instance1).toBe(instance2);
     });
   });
@@ -75,7 +75,7 @@ describe('WeatherService', () => {
             query: mockAddress,
           },
           timeout: 15000,
-        })
+        }),
       );
     });
 
@@ -92,7 +92,7 @@ describe('WeatherService', () => {
       mockedAxios.get.mockResolvedValueOnce(mockResponse);
 
       await expect(weatherService.fetchWeatherData(mockAddress)).rejects.toThrow(
-        'Invalid response from Weatherstack API'
+        'Invalid response from Weatherstack API',
       );
     });
 
@@ -111,7 +111,7 @@ describe('WeatherService', () => {
       mockedAxios.get.mockResolvedValueOnce(mockResponse);
 
       await expect(weatherService.fetchWeatherData(mockAddress)).rejects.toThrow(
-        'Invalid response from Weatherstack API'
+        'Invalid response from Weatherstack API',
       );
     });
 
@@ -162,7 +162,7 @@ describe('WeatherService', () => {
       mockedAxios.get.mockRejectedValueOnce(error);
 
       await expect(weatherService.fetchWeatherData(mockAddress)).rejects.toThrow(
-        'Failed to fetch weather data'
+        'Failed to fetch weather data',
       );
 
       // Should only call once (no retries on 4xx)
@@ -185,7 +185,7 @@ describe('WeatherService', () => {
         .mockRejectedValueOnce(error);
 
       await expect(weatherService.fetchWeatherData(mockAddress)).rejects.toThrow(
-        'Failed to fetch weather data after 3 attempts'
+        'Failed to fetch weather data after 3 attempts',
       );
 
       expect(mockedAxios.get).toHaveBeenCalledTimes(3);

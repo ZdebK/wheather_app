@@ -8,14 +8,14 @@ import logger from '../utils/logger';
 export function HandleErrors(
   target: any,
   propertyKey: string,
-  descriptor: PropertyDescriptor
+  descriptor: PropertyDescriptor,
 ): PropertyDescriptor {
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: any[]) {
-    const className = target.constructor.name;
-    const methodName = propertyKey;
-    const isTest = process.env.NODE_ENV === 'test';
+    const className = target.constructor.name,
+      methodName = propertyKey,
+      isTest = process.env.NODE_ENV === 'test';
 
     try {
       const result = await originalMethod.apply(this, args);

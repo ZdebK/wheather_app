@@ -1,7 +1,7 @@
 /**
  * Weatherstack API Response interfaces
  */
-export interface WeatherstackLocation {
+export interface IWeatherstackLocation {
   name: string;
   country: string;
   region: string;
@@ -13,7 +13,7 @@ export interface WeatherstackLocation {
   utc_offset: string;
 }
 
-export interface WeatherstackCurrent {
+export interface IWeatherstackCurrent {
   observation_time: string;
   temperature: number;
   weather_code: number;
@@ -31,18 +31,18 @@ export interface WeatherstackCurrent {
   visibility: number;
 }
 
-export interface WeatherstackResponse {
+export interface IWeatherstackResponse {
   request: {
     type: string;
     query: string;
     language: string;
     unit: string;
   };
-  location: WeatherstackLocation;
-  current: WeatherstackCurrent;
+  location: IWeatherstackLocation;
+  current: IWeatherstackCurrent;
 }
 
-export interface WeatherData {
+export interface IWeatherData {
   temperature: number;
   weather_descriptions: string[];
   humidity: number;

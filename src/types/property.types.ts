@@ -7,27 +7,27 @@ import { IsString, IsNotEmpty, Length, Matches } from 'class-validator';
 export class CreatePropertyInput {
   @IsString()
   @IsNotEmpty({ message: 'Street is required' })
-  street: string;
+    street: string;
 
   @IsString()
   @IsNotEmpty({ message: 'City is required' })
-  city: string;
+    city: string;
 
   @IsString()
   @Length(2, 2, { message: 'State must be a 2-letter abbreviation' })
   @Matches(/^[A-Z]{2}$/, { message: 'State must be uppercase letters (e.g., AZ)' })
-  state: string;
+    state: string;
 
   @IsString()
   @Length(5, 5, { message: 'Zip code must be 5 digits' })
   @Matches(/^\d{5}$/, { message: 'Zip code must contain only digits' })
-  zipCode: string;
+    zipCode: string;
 }
 
 /**
  * Filter options for querying properties
  */
-export interface PropertyFilter {
+export interface IPropertyFilter {
   city?: string;
   state?: string;
   zipCode?: string;
@@ -41,6 +41,6 @@ export enum SortOrder {
   DESC = 'DESC',
 }
 
-export interface PropertySort {
+export interface IPropertySort {
   createdAt?: SortOrder;
 }
