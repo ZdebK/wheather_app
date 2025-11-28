@@ -1,10 +1,10 @@
-import { PropertyResolvers } from '../../resolvers/PropertyResolvers';
-import { PropertyService } from '../../services/PropertyService';
-import { Property } from '../../entities/Property';
+import { PropertyResolvers } from '../../resolvers/property.resolvers';
+import { PropertyService } from '../../services/property.service';
+import { Property } from '../../entities/property.entity';
 import { SortOrder } from '../../types/property.types';
 
 // Mock PropertyService
-jest.mock('../../services/PropertyService');
+jest.mock('../../services/property.service');
 
 describe('PropertyResolvers - GraphQL API', () => {
   let resolvers: any,

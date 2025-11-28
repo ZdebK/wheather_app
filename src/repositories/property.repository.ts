@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
-import { Property } from '../entities/Property';
+import { Property } from '../entities/property.entity';
 import { IPropertyFilter, IPropertySort, SortOrder } from '../types/property.types';
 import logger from '../utils/logger';
 import { HandleErrors } from '../decorators/error-handler';

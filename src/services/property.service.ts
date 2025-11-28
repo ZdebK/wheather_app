@@ -1,7 +1,7 @@
 import { validate } from 'class-validator';
-import { Property } from '../entities/Property';
-import { PropertyRepository } from '../repositories/PropertyRepository';
-import { WeatherService, IWeatherService } from './WeatherService';
+import { Property } from '../entities/property.entity';
+import { PropertyRepository } from '../repositories/property.repository';
+import { WeatherService, IWeatherService } from './weather.service';
 import { CreatePropertyInput, IPropertyFilter, IPropertySort } from '../types/property.types';
 import { HandleErrors } from '../decorators/error-handler';
 import { ValidationError, NotFoundError } from '../errors/custom-errors';

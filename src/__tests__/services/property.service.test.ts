@@ -1,15 +1,15 @@
-import { PropertyService } from '../../services/PropertyService';
-import { PropertyRepository } from '../../repositories/PropertyRepository';
-import { WeatherService } from '../../services/WeatherService';
-import { Property } from '../../entities/Property';
+import { PropertyService } from '../../services/property.service';
+import { PropertyRepository } from '../../repositories/property.repository';
+import { WeatherService } from '../../services/weather.service';
+import { Property } from '../../entities/property.entity';
 import { SortOrder } from '../../types/property.types';
 // ValidationError and NotFoundError used in test expectations
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ValidationError, NotFoundError } from '../../errors/custom-errors';
 
 // Mock dependencies
-jest.mock('../../repositories/PropertyRepository');
-jest.mock('../../services/WeatherService');
+jest.mock('../../repositories/property.repository');
+jest.mock('../../services/weather.service');
 
 describe('PropertyService', () => {
   let propertyService: PropertyService,

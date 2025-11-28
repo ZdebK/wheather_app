@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { WeatherService } from '../../services/WeatherService';
+import { WeatherService } from '../../services/weather.service';
 
 // Mock axios
 jest.mock('axios');

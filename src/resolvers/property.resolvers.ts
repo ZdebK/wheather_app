@@ -1,4 +1,4 @@
-import { PropertyService, IPropertyService } from '../services/PropertyService';
+import { PropertyService, IPropertyService } from '../services/property.service';
 import { CreatePropertyInput, IPropertyFilter, IPropertySort } from '../types/property.types';
 import GraphQLJSON from 'graphql-type-json';
 

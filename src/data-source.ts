@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import dotenv from 'dotenv';
-import { Property } from './entities/Property';
+import { Property } from './entities/property.entity';
 import { logContext } from './utils/logger';
 
 dotenv.config();

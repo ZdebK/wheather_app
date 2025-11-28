@@ -4,18 +4,15 @@ import { graphqlHTTP } from 'express-graphql';
 import dotenv from 'dotenv';
 import { AppDataSource, initializeDatabase } from './data-source';
 import { schema } from './graphql/schema';
-import { PropertyResolvers } from './resolvers/PropertyResolvers';
+import { PropertyResolvers } from './resolvers/property.resolvers';
 import logger, { logContext } from './utils/logger';
 
 // Load environment variables
 dotenv.config();
 
-const PORT = process.env.PORT || 4000,
+const 
+  PORT = process.env.PORT || 4000,
   NODE_ENV = process.env.NODE_ENV || 'development',
-
-  /**
- * Create Express application with GraphQL endpoint
- */
   createApp = (): Application => {
     const app = express(),
 
@@ -55,10 +52,6 @@ const PORT = process.env.PORT || 4000,
 
     return app;
   },
-
-  /**
- * Start the server with database initialization
- */
   startServer = async (): Promise<void> => {
   // Initialize database connection
     await initializeDatabase();
@@ -75,10 +68,6 @@ const PORT = process.env.PORT || 4000,
       }
     });
   },
-
-  /**
- * Graceful shutdown handler
- */
   gracefulShutdown = async (signal: string): Promise<void> => {
     logger.info(`${signal} received, closing gracefully...`);
 
