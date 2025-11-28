@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Property } from '../entities/property.entity';
 import { IPropertyFilter, IPropertySort, SortOrder } from '../types/property.types';
@@ -43,7 +43,10 @@ export class PropertyRepository {
   /**
    * Apply filters to query builder
    */
-  private applyFilters(queryBuilder: any, filter?: IPropertyFilter): any {
+  private applyFilters(
+    queryBuilder: SelectQueryBuilder<Property>,
+    filter?: IPropertyFilter,
+  ): SelectQueryBuilder<Property> {
     if (!filter) {
       return queryBuilder;
     }
@@ -64,7 +67,10 @@ export class PropertyRepository {
   /**
    * Apply sorting to query builder
    */
-  private applySorting(queryBuilder: any, sort?: IPropertySort): any {
+  private applySorting(
+    queryBuilder: SelectQueryBuilder<Property>,
+    sort?: IPropertySort,
+  ): SelectQueryBuilder<Property> {
     if (sort?.createdAt) {
       queryBuilder.orderBy('property.createdAt', sort.createdAt);
     } else {

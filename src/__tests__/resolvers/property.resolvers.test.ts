@@ -1,13 +1,16 @@
 import { PropertyResolvers } from '../../resolvers/property.resolvers';
 import { PropertyService } from '../../services/property.service';
 import { Property } from '../../entities/property.entity';
-import { SortOrder } from '../../types/property.types';
+import { SortOrder, CreatePropertyInput } from '../../types/property.types';
+
+type ResolversRoot = ReturnType<PropertyResolvers['getRootValue']>;
 
 // Mock PropertyService
 jest.mock('../../services/property.service');
 
 describe('PropertyResolvers', () => {
-  let resolvers: any,
+  let 
+    resolvers: ResolversRoot,
     mockPropertyService: jest.Mocked<PropertyService>,
     propertyResolvers: PropertyResolvers;
 
@@ -18,7 +21,7 @@ describe('PropertyResolvers', () => {
       getPropertyById: jest.fn(),
       createProperty: jest.fn(),
       deleteProperty: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<PropertyService>;
 
     // Create resolver instance with mocked service
     propertyResolvers = new PropertyResolvers(mockPropertyService);

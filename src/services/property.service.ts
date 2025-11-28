@@ -3,6 +3,7 @@ import { Property } from '../entities/property.entity';
 import { PropertyRepository } from '../repositories/property.repository';
 import { WeatherService, IWeatherService } from './weather.service';
 import { CreatePropertyInput, IPropertyFilter, IPropertySort } from '../types/property.types';
+import { IWeatherData } from '../types/weather.types';
 import { HandleErrors } from '../decorators/error-handler';
 import { ValidationError, NotFoundError } from '../errors/custom-errors';
 
@@ -70,7 +71,7 @@ export class PropertyService implements IPropertyService {
    */
   private buildPropertyData(
     input: CreatePropertyInput,
-    weatherData: any,
+    weatherData: IWeatherData,
     lat: number,
     long: number,
   ): Partial<Property> {

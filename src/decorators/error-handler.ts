@@ -12,7 +12,7 @@ export function HandleErrors(
 ): PropertyDescriptor {
   const originalMethod = descriptor.value;
 
-  descriptor.value = async function (...args: any[]) {
+  descriptor.value = async function (...args: unknown[]) {
     const 
       className = target.constructor.name,
       methodName = propertyKey,
@@ -21,7 +21,7 @@ export function HandleErrors(
     try {
       const result = await originalMethod.apply(this, args);
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       // Only log in non-test environments
       if (!isTest) {
         logger.error(`${className}.${methodName} failed`, {
