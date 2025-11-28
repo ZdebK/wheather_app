@@ -1,4 +1,4 @@
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, DataSource } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Property } from '../entities/property.entity';
 import { IPropertyFilter, IPropertySort, SortOrder } from '../types/property.types';
@@ -12,8 +12,8 @@ import { HandleErrors } from '../decorators/error-handler';
 export class PropertyRepository {
   private repository: Repository<Property>;
 
-  constructor() {
-    this.repository = AppDataSource.getRepository(Property);
+  constructor(dataSource: DataSource = AppDataSource) {
+    this.repository = dataSource.getRepository(Property);
   }
 
   /**
