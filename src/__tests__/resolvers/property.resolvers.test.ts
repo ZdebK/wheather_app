@@ -29,7 +29,7 @@ describe('PropertyResolvers - GraphQL API', () => {
     jest.clearAllMocks();
   });
 
-  describe('Query: properties', () => {
+  describe('query: properties', () => {
     const mockProperties: Property[] = [
       {
         id: '1',
@@ -150,7 +150,7 @@ describe('PropertyResolvers - GraphQL API', () => {
     });
   });
 
-  describe('Query: property by ID', () => {
+  describe('query: property by ID', () => {
     const mockProperty: Property = {
       id: 'abc-123',
       street: '789 Pine Rd',
@@ -211,7 +211,7 @@ describe('PropertyResolvers - GraphQL API', () => {
     });
   });
 
-  describe('Mutation: createProperty', () => {
+  describe('mutation: createProperty', () => {
     const validInput = {
         street: '15528 E Golden Eagle Blvd',
         city: 'Fountain Hills',
@@ -290,7 +290,7 @@ describe('PropertyResolvers - GraphQL API', () => {
     });
   });
 
-  describe('Mutation: deleteProperty', () => {
+  describe('mutation: deleteProperty', () => {
     it('deletes existing property', async () => {
       mockPropertyService.deleteProperty.mockResolvedValue(true);
 

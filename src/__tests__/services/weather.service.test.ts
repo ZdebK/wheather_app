@@ -20,7 +20,7 @@ describe('WeatherService', () => {
     });
   });
 
-  describe('Singleton Pattern', () => {
+  describe('singleton pattern', () => {
     it('returns the same instance on multiple calls', () => {
       const instance1 = WeatherService.getInstance(),
         instance2 = WeatherService.getInstance();
