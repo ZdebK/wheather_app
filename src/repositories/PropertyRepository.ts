@@ -35,28 +35,9 @@ export class PropertyRepository {
    */
   async findAll(filter?: PropertyFilter, sort?: PropertySort): Promise<Property[]> {
     try {
-      const queryBuilder = this.repository.createQueryBuilder('property');
-
-      // Apply filters
-      if (filter) {
-        if (filter.city) {
-          queryBuilder.andWhere('property.city = :city', { city: filter.city });
-        }
-        if (filter.state) {
-          queryBuilder.andWhere('property.state = :state', { state: filter.state });
-        }
-        if (filter.zipCode) {
-          queryBuilder.andWhere('property.zipCode = :zipCode', { zipCode: filter.zipCode });
-        }
-      }
-
-      // Apply sorting
-      if (sort?.createdAt) {
-        queryBuilder.orderBy('property.createdAt', sort.createdAt);
-      } else {
-        // Default sort by createdAt DESC
-        queryBuilder.orderBy('property.createdAt', SortOrder.DESC);
-      }
+      let queryBuilder = this.repository.createQueryBuilder('property');
+      queryBuilder = this.applyFilters(queryBuilder, filter);
+      queryBuilder = this.applySorting(queryBuilder, sort);
 
       const properties = await queryBuilder.getMany();
       logger.info(`Found ${properties.length} properties`);
@@ -65,6 +46,38 @@ export class PropertyRepository {
       logger.error('Error finding properties', { error });
       throw error;
     }
+  }
+
+  /**
+   * Apply filters to query builder
+   */
+  private applyFilters(queryBuilder: any, filter?: PropertyFilter): any {
+    if (!filter) return queryBuilder;
+
+    if (filter.city) {
+      queryBuilder.andWhere('property.city = :city', { city: filter.city });
+    }
+    if (filter.state) {
+      queryBuilder.andWhere('property.state = :state', { state: filter.state });
+    }
+    if (filter.zipCode) {
+      queryBuilder.andWhere('property.zipCode = :zipCode', { zipCode: filter.zipCode });
+    }
+
+    return queryBuilder;
+  }
+
+  /**
+   * Apply sorting to query builder
+   */
+  private applySorting(queryBuilder: any, sort?: PropertySort): any {
+    if (sort?.createdAt) {
+      queryBuilder.orderBy('property.createdAt', sort.createdAt);
+    } else {
+      queryBuilder.orderBy('property.createdAt', SortOrder.DESC);
+    }
+
+    return queryBuilder;
   }
 
   /**
