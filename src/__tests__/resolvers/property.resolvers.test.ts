@@ -6,7 +6,7 @@ import { SortOrder } from '../../types/property.types';
 // Mock PropertyService
 jest.mock('../../services/property.service');
 
-describe('PropertyResolvers - GraphQL API', () => {
+describe('PropertyResolvers', () => {
   let resolvers: any,
     mockPropertyService: jest.Mocked<PropertyService>,
     propertyResolvers: PropertyResolvers;

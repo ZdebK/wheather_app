@@ -28,7 +28,7 @@ export class WeatherService implements IWeatherService {
 
   private constructor() {
     this.apiKey = process.env.WEATHERSTACK_API_KEY || '';
-    if (!this.apiKey) {
+    if (!this.apiKey && process.env.NODE_ENV !== 'test') {
       logger.warn('WEATHERSTACK_API_KEY not found in environment variables');
     }
   }
@@ -108,15 +108,19 @@ export class WeatherService implements IWeatherService {
 
   private shouldStopRetrying(error: unknown, attempt: number): boolean {
     if (!axios.isAxiosError(error)) {
-      logContext.error('Unexpected error fetching weather data', error);
+      if (process.env.NODE_ENV !== 'test') {
+        logContext.error('Unexpected error fetching weather data', error);
+      }
       return true;
     }
 
-    logger.warn(`Weatherstack API attempt ${attempt} failed`, {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
+    if (process.env.NODE_ENV !== 'test') {
+      logger.warn(`Weatherstack API attempt ${attempt} failed`, {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+    }
 
     // Don't retry on 4xx client errors
     if (error.response && error.response.status >= 400 && error.response.status < 500) {

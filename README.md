@@ -9,14 +9,18 @@ Professional GraphQL API for managing property records with integrated weather d
 ```
 src/
 ├── entities/           # TypeORM entities (Database models)
-│   └── Property.ts
+│   └── property.entity.ts
 ├── repositories/       # Repository Pattern (Data access layer)
-│   └── PropertyRepository.ts
+│   └── property.repository.ts
 ├── services/          # Business logic layer
-│   ├── PropertyService.ts
-│   └── WeatherService.ts (Singleton)
+│   ├── property.service.ts
+│   └── weather.service.ts (Singleton)
 ├── resolvers/         # GraphQL resolvers layer
-│   └── PropertyResolvers.ts
+│   └── property.resolvers.ts
+├── decorators/        # Method decorators
+│   └── error-handler.ts (@HandleErrors)
+├── errors/            # Custom error classes
+│   └── custom-errors.ts
 ├── graphql/          # GraphQL schema definitions
 │   └── schema.ts
 ├── types/            # TypeScript interfaces & DTOs
@@ -32,14 +36,16 @@ src/
 
 - **Repository Pattern**: Encapsulates database operations
 - **Singleton Pattern**: WeatherService instance management
-- **Factory Pattern**: Property object creation
+- **Decorator Pattern**: @HandleErrors for centralized error handling and logging
 - **Dependency Injection**: Services injected for testability
+- **Custom Error Classes**: Type-safe error handling (ValidationError, NotFoundError, WeatherAPIError, DatabaseError)
 
 ### SOLID Principles
 
-- **Single Responsibility**: Each class has one clear purpose
-- **Dependency Inversion**: High-level modules depend on abstractions
-- **Interface Segregation**: Clean interfaces for services
+- **Single Responsibility**: Each class has one clear purpose (max 20-30 lines per function)
+- **Open/Closed**: Extensible via decorators and interfaces
+- **Dependency Inversion**: Services depend on interfaces (IPropertyService, IWeatherService)
+- **Interface Segregation**: Clean, focused interfaces with I-prefix naming convention
 
 ## 🚀 Getting Started
 
@@ -162,18 +168,48 @@ Input validation using `class-validator`:
 ✅ Environment variables for sensitive data  
 ✅ SSL/TLS for PostgreSQL connection  
 ✅ Input validation with class-validator  
-✅ Structured error handling and logging  
+✅ Structured error handling with @HandleErrors decorator  
+✅ Custom error classes for type safety  
+✅ Structured logging with Winston (silent in tests)  
 ✅ Graceful shutdown handlers  
 ✅ TypeScript for type safety  
 ✅ Connection pooling via TypeORM  
+✅ Interface-based architecture (I-prefix convention)  
+✅ ESLint with TypeScript best practices  
+✅ Kebab-case file naming convention  
 
 ## 📝 Logging
 
-Uses **winston** for structured logging:
+Uses **winston** for structured logging with context-aware helpers:
 
-- Info: Normal operations
-- Error: Failures with stack traces
-- Warn: Warnings and edge cases
+- **Contexts**: api, database, repository, service, graphql, error
+- **Levels**: info, warn, error (with stack traces)
+- **Transports**: Console + file (logs/combined.log, logs/error.log)
+- **Test Environment**: Automatically silenced when NODE_ENV=test
+
+## 🎨 Code Quality
+
+### Clean Code Principles Applied
+
+- **DRY (Don't Repeat Yourself)**: Eliminated duplicate code (~60 lines removed)
+- **Single Responsibility**: Each function has one clear purpose
+- **Short Functions**: Max 20-30 lines per function
+- **No Logic in Resolvers**: Pure delegation to services
+- **Centralized Error Handling**: @HandleErrors decorator replaces try-catch blocks
+- **Structured Logging**: Context-based logging with minimal noise
+
+### ESLint Configuration
+
+Professional TypeScript rules enforced:
+- `one-var: consecutive` - Grouped variable declarations
+- `indent: 2` - Consistent 2-space indentation
+- `quotes: single` - Single quotes for strings
+- `prefer-const` - Immutability by default
+- `no-var` - Modern ES6+ syntax
+- `@typescript-eslint/naming-convention` - I-prefix for interfaces
+- `@typescript-eslint/no-explicit-any: warn` - Type safety encouraged
+
+**Status**: 0 errors, 23 warnings (only 'any' type usage)
 
 ## 🧪 Testing
 
@@ -201,46 +237,48 @@ npm run test:coverage
 
 | File | Coverage |
 |------|----------|
-| **WeatherService.ts** | 100% statements, branches, functions, lines |
-| **PropertyService.ts** | 95.23% statements, 100% functions |
-| **PropertyResolvers.ts** | Full GraphQL API coverage |
+| **weather.service.ts** | 100% statements, branches, functions, lines |
+| **property.service.ts** | 95.23% statements, 100% functions |
+| **property.resolvers.ts** | Full GraphQL API coverage |
 
 ### Test Scenarios
 
 #### WeatherService Tests (7 tests)
-- ✅ Returns single shared instance
-- ✅ Successful weather data fetch with coordinates
-- ✅ Invalid API response handling
-- ✅ Timeout recovery with retry logic (3 attempts, exponential backoff)
-- ✅ 4xx client error handling (no retry)
-- ✅ Max retries failure after persistent errors
+- ✅ singleton pattern - returns single shared instance
+- ✅ fetchWeatherData - successful weather data fetch with coordinates
+- ✅ fetchWeatherData - invalid API response handling
+- ✅ fetchWeatherData - timeout recovery with retry logic (3 attempts, exponential backoff)
+- ✅ fetchWeatherData - 4xx client error handling (no retry)
+- ✅ fetchWeatherData - max retries failure after persistent errors
 
 #### PropertyService Tests (14 tests)
-- ✅ Property creation with weather data integration
-- ✅ Input validation (state format, zip code format, required fields)
-- ✅ **Weather API failure abortion** (Requirement #4 - property not created if weather fetch fails)
-- ✅ Property retrieval (all, by ID, with filtering/sorting)
-- ✅ Property deletion (successful, not found scenarios)
-- ✅ Error handling for database operations
+- ✅ createProperty - property creation with weather data integration
+- ✅ createProperty - input validation (state format, zip code format, required fields)
+- ✅ createProperty - **weather API failure abortion** (Requirement #4 - property not created if weather fetch fails)
+- ✅ getAllProperties - property retrieval with filtering/sorting
+- ✅ getPropertyById - property retrieval by ID
+- ✅ deleteProperty - property deletion (successful, not found scenarios)
+- ✅ error handling for database operations
 
 #### PropertyResolvers Tests (19 tests)
-- ✅ Query all properties (filtering by city, state, zipCode)
-- ✅ Query all properties (sorting ascending/descending)
-- ✅ Query all properties (combined filters and sorting)
-- ✅ Query single property by ID with weather data and coordinates
-- ✅ Create property mutation with automatic weather fetch
-- ✅ Validation errors (state format, zipCode format, required fields)
-- ✅ Delete property mutation (success and error cases)
+- ✅ query: properties - filtering by city, state, zipCode
+- ✅ query: properties - sorting ascending/descending
+- ✅ query: properties - combined filters and sorting
+- ✅ query: property by ID - with weather data and coordinates
+- ✅ mutation: createProperty - automatic weather fetch
+- ✅ mutation: createProperty - validation errors (state format, zipCode format, required fields)
+- ✅ mutation: deleteProperty - success and error cases
 - ✅ GraphQL error handling
 
 ### Key Test Features
 
+- **Clean Output**: All Winston logs silenced in test environment (NODE_ENV=test)
 - **Mocked Dependencies**: axios, repositories isolated for unit testing
 - **GraphQL API Coverage**: All queries and mutations tested with realistic scenarios
 - **Retry Logic Validation**: Confirms 3-attempt retry with exponential backoff (1s, 2s delays)
 - **Error Path Coverage**: Tests 4xx no-retry, 5xx retry behavior
 - **Requirement Validation**: Explicit test for "abort operation on weather failure" (Requirement #4)
-- **Self-Documenting Tests**: Clean, readable test names without redundant comments
+- **Naming Convention**: Lowercase describe blocks for consistency
 
 ### Integration Tests (TODO)
 
@@ -255,8 +293,9 @@ GraphQL integration tests with test database.
 - `pg` - PostgreSQL driver
 - `class-validator` - Input validation
 - `axios` - HTTP client for Weatherstack API
-- `winston` - Logging
+- `winston` - Structured logging
 - `dotenv` - Environment variables
+- `reflect-metadata` - TypeScript decorators support
 
 ### Development
 - `typescript` - Type safety
@@ -264,7 +303,8 @@ GraphQL integration tests with test database.
 - `nodemon` - Auto-restart on changes
 - `jest` & `ts-jest` - Testing framework
 - `@types/jest` - Jest TypeScript definitions
-- `supertest` - HTTP assertions for API testing
+- `@types/node` - Node.js TypeScript definitions
+- `eslint` & `@typescript-eslint` - Code quality linting
 
 ## 🛠️ Scripts
 
@@ -275,7 +315,8 @@ GraphQL integration tests with test database.
   "start": "node dist/index.js",
   "test": "jest",
   "test:watch": "jest --watch",
-  "test:coverage": "jest --coverage"
+  "test:coverage": "jest --coverage",
+  "lint": "eslint . --ext .ts"
 }
 ```
 
