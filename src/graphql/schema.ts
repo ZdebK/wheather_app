@@ -4,11 +4,31 @@ import { buildSchema } from 'graphql';
  * GraphQL Schema Definition
  */
 export const schema = buildSchema(`
+  # ========================================
+  # Scalars
+  # ========================================
+  
   """
   JSON scalar type for flexible weather data storage
   """
   scalar JSON
 
+  # ========================================
+  # Enums
+  # ========================================
+  
+  """
+  Sort order enum
+  """
+  enum SortOrder {
+    ASC
+    DESC
+  }
+
+  # ========================================
+  # Types
+  # ========================================
+  
   """
   Property type representing a real estate property
   """
@@ -24,6 +44,10 @@ export const schema = buildSchema(`
     createdAt: String!
   }
 
+  # ========================================
+  # Input Types
+  # ========================================
+  
   """
   Input for creating a new property
   """
@@ -44,20 +68,16 @@ export const schema = buildSchema(`
   }
 
   """
-  Sort order enum
-  """
-  enum SortOrder {
-    ASC
-    DESC
-  }
-
-  """
   Sort input for properties
   """
   input PropertySort {
     createdAt: SortOrder
   }
 
+  # ========================================
+  # Queries
+  # ========================================
+  
   """
   Root Query type
   """
@@ -73,6 +93,10 @@ export const schema = buildSchema(`
     property(id: ID!): Property!
   }
 
+  # ========================================
+  # Mutations
+  # ========================================
+  
   """
   Root Mutation type
   """

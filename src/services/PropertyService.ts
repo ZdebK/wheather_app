@@ -3,11 +3,12 @@ import { Property } from '../entities/Property';
 import { PropertyRepository } from '../repositories/PropertyRepository';
 import { WeatherService } from './WeatherService';
 import { CreatePropertyInput, PropertyFilter, PropertySort } from '../types/property.types';
-import logger from '../utils/logger';
+import { HandleErrors } from '../decorators/error-handler';
+import { ValidationError, NotFoundError } from '../errors/custom-errors';
 
 /**
  * PropertyService - Business Logic Layer
- * Dependency Injection: Injects WeatherService and PropertyRepository
+ * Uses @HandleErrors decorator for automatic error handling and logging
  */
 export class PropertyService {
   private propertyRepository: PropertyRepository;
@@ -21,12 +22,8 @@ export class PropertyService {
     this.weatherService = weatherService;
   }
 
-  /**
-   * Create a new property with weather data
-   * Calls Weatherstack API to fetch weather and coordinates
-   */
+  @HandleErrors
   async createProperty(input: CreatePropertyInput): Promise<Property> {
-    // Validate input
     const inputInstance = Object.assign(new CreatePropertyInput(), input);
     const errors = await validate(inputInstance);
 
@@ -34,80 +31,45 @@ export class PropertyService {
       const errorMessages = errors
         .map((err) => Object.values(err.constraints || {}).join(', '))
         .join('; ');
-      logger.error('Validation failed for property creation', { errors: errorMessages });
-      throw new Error(`Validation failed: ${errorMessages}`);
+      throw new ValidationError(`Validation failed: ${errorMessages}`, errors);
     }
 
-    try {
-      // Construct full address for weather API
-      const fullAddress = `${input.street}, ${input.city}, ${input.state} ${input.zipCode}`;
+    const fullAddress = `${input.street}, ${input.city}, ${input.state} ${input.zipCode}`;
+    const { weatherData, lat, long } = await this.weatherService.fetchWeatherData(fullAddress);
 
-      // Fetch weather data and coordinates (API call only during creation)
-      const { weatherData, lat, long } = await this.weatherService.fetchWeatherData(fullAddress);
+    const propertyData: Partial<Property> = {
+      street: input.street,
+      city: input.city,
+      state: input.state,
+      zipCode: input.zipCode,
+      weatherData,
+      lat,
+      long,
+    };
 
-      // Create property object (Factory Pattern)
-      const propertyData: Partial<Property> = {
-        street: input.street,
-        city: input.city,
-        state: input.state,
-        zipCode: input.zipCode,
-        weatherData,
-        lat,
-        long,
-      };
-
-      // Save to database
-      const property = await this.propertyRepository.create(propertyData);
-      logger.info(`Property created successfully`, { id: property.id });
-
-      return property;
-    } catch (error) {
-      logger.error('Error creating property', { error });
-      throw error;
-    }
+    return await this.propertyRepository.create(propertyData);
   }
 
-  /**
-   * Get all properties with optional filters and sorting
-   */
+  @HandleErrors
   async getAllProperties(filter?: PropertyFilter, sort?: PropertySort): Promise<Property[]> {
-    try {
-      return await this.propertyRepository.findAll(filter, sort);
-    } catch (error) {
-      logger.error('Error retrieving properties', { error });
-      throw error;
-    }
+    return await this.propertyRepository.findAll(filter, sort);
   }
 
-  /**
-   * Get a single property by ID
-   */
+  @HandleErrors
   async getPropertyById(id: string): Promise<Property> {
-    try {
-      const property = await this.propertyRepository.findById(id);
-      if (!property) {
-        throw new Error(`Property with ID ${id} not found`);
-      }
-      return property;
-    } catch (error) {
-      logger.error(`Error retrieving property by ID: ${id}`, { error });
-      throw error;
+    const property = await this.propertyRepository.findById(id);
+    if (!property) {
+      throw new NotFoundError(`Property with ID ${id} not found`);
     }
+    return property;
   }
 
-  /**
-   * Delete a property by ID
-   */
+  @HandleErrors
   async deleteProperty(id: string): Promise<boolean> {
-    try {
-      const deleted = await this.propertyRepository.delete(id);
-      if (!deleted) {
-        throw new Error(`Property with ID ${id} not found`);
-      }
-      return deleted;
-    } catch (error) {
-      logger.error(`Error deleting property with ID: ${id}`, { error });
-      throw error;
+    const deleted = await this.propertyRepository.delete(id);
+    if (!deleted) {
+      throw new NotFoundError(`Property with ID ${id} not found`);
     }
+    return deleted;
   }
 }

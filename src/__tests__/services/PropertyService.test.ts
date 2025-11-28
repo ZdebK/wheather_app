@@ -3,6 +3,7 @@ import { PropertyRepository } from '../../repositories/PropertyRepository';
 import { WeatherService } from '../../services/WeatherService';
 import { Property } from '../../entities/Property';
 import { SortOrder } from '../../types/property.types';
+import { ValidationError, NotFoundError } from '../../errors/custom-errors';
 
 // Mock dependencies
 jest.mock('../../repositories/PropertyRepository');

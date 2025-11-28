@@ -1,11 +1,11 @@
 import { PropertyService } from '../services/PropertyService';
 import { CreatePropertyInput, PropertyFilter, PropertySort } from '../types/property.types';
-import logger from '../utils/logger';
 import GraphQLJSON from 'graphql-type-json';
 
 /**
  * GraphQL Resolvers
- * Handles all GraphQL queries and mutations
+ * Clean resolver layer - only delegates to services
+ * Error handling and logging managed by @HandleErrors decorator in services
  */
 export class PropertyResolvers {
   private propertyService: PropertyService;
@@ -14,61 +14,21 @@ export class PropertyResolvers {
     this.propertyService = propertyService;
   }
 
-  /**
-   * Get root value object with all resolvers
-   */
   getRootValue() {
     return {
-      // Custom scalar resolver for JSON type
       JSON: GraphQLJSON,
 
-      // Queries
-      properties: async ({
-        filter,
-        sort,
-      }: {
-        filter?: PropertyFilter;
-        sort?: PropertySort;
-      }) => {
-        try {
-          logger.info('Query: properties', { filter, sort });
-          return await this.propertyService.getAllProperties(filter, sort);
-        } catch (error) {
-          logger.error('Error in properties query', { error });
-          throw error;
-        }
-      },
+      properties: ({ filter, sort }: { filter?: PropertyFilter; sort?: PropertySort }) =>
+        this.propertyService.getAllProperties(filter, sort),
 
-      property: async ({ id }: { id: string }) => {
-        try {
-          logger.info(`Query: property by ID ${id}`);
-          return await this.propertyService.getPropertyById(id);
-        } catch (error) {
-          logger.error(`Error in property query for ID ${id}`, { error });
-          throw error;
-        }
-      },
+      property: ({ id }: { id: string }) =>
+        this.propertyService.getPropertyById(id),
 
-      // Mutations
-      createProperty: async ({ input }: { input: CreatePropertyInput }) => {
-        try {
-          logger.info('Mutation: createProperty', { input });
-          return await this.propertyService.createProperty(input);
-        } catch (error) {
-          logger.error('Error in createProperty mutation', { error });
-          throw error;
-        }
-      },
+      createProperty: ({ input }: { input: CreatePropertyInput }) =>
+        this.propertyService.createProperty(input),
 
-      deleteProperty: async ({ id }: { id: string }) => {
-        try {
-          logger.info(`Mutation: deleteProperty with ID ${id}`);
-          return await this.propertyService.deleteProperty(id);
-        } catch (error) {
-          logger.error(`Error in deleteProperty mutation for ID ${id}`, { error });
-          throw error;
-        }
-      },
+      deleteProperty: ({ id }: { id: string }) =>
+        this.propertyService.deleteProperty(id),
     };
   }
 }
