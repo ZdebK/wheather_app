@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import dotenv from 'dotenv';
 import { Property } from './entities/Property';
+import { logContext } from './utils/logger';
 
 dotenv.config();
 
@@ -30,11 +31,6 @@ export const AppDataSource = new DataSource({
  * Initialize database connection
  */
 export const initializeDatabase = async (): Promise<void> => {
-  try {
-    await AppDataSource.initialize();
-    console.log('✅ Database connection initialized');
-  } catch (error) {
-    console.error('❌ Error initializing database:', error);
-    throw error;
-  }
+  await AppDataSource.initialize();
+  logContext.database('Database connection initialized');
 };

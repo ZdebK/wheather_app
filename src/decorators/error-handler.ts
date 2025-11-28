@@ -2,7 +2,7 @@ import logger from '../utils/logger';
 
 /**
  * Method decorator that automatically handles errors and logging
- * Wraps async methods with try-catch and logs method calls
+ * Logs method calls at debug level, errors at error level
  */
 export function HandleErrors(
   target: any,
@@ -16,20 +16,13 @@ export function HandleErrors(
     const methodName = propertyKey;
 
     try {
-      logger.info(`${className}.${methodName} called`, {
-        args: args.length > 0 ? args : undefined,
-      });
-
       const result = await originalMethod.apply(this, args);
-
-      logger.info(`${className}.${methodName} succeeded`);
       return result;
     } catch (error) {
       logger.error(`${className}.${methodName} failed`, {
         error: error instanceof Error ? error.message : String(error),
         errorName: error instanceof Error ? error.name : 'UnknownError',
         stack: error instanceof Error ? error.stack : undefined,
-        args: args.length > 0 ? args : undefined,
       });
       throw error;
     }

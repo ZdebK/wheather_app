@@ -1,5 +1,6 @@
 import { Pool, PoolConfig } from 'pg';
 import dotenv from 'dotenv';
+import { logContext } from './utils/logger';
 
 dotenv.config();
 
@@ -26,25 +27,20 @@ const pool = new Pool(poolConfig);
 
 // Event handlers for monitoring
 pool.on('connect', () => {
-  console.log('✅ Connected to PostgreSQL database');
+  logContext.database('Connected to PostgreSQL database');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected database connection error:', err);
+  logContext.error('Unexpected database connection error', err);
   process.exit(-1);
 });
 
 export const testConnection = async (): Promise<boolean> => {
-  try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
-    client.release();
-    console.log(' Connection test successful:', result.rows[0].now);
-    return true;
-  } catch (err) {
-    console.error('Connection test failed:', err);
-    return false;
-  }
+  const client = await pool.connect();
+  const result = await client.query('SELECT NOW()');
+  client.release();
+  logContext.database('Connection test successful', { timestamp: result.rows[0].now });
+  return true;
 };
 
 export default pool;

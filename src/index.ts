@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { AppDataSource, initializeDatabase } from './data-source';
 import { schema } from './graphql/schema';
 import { PropertyResolvers } from './resolvers/PropertyResolvers';
-import logger from './utils/logger';
+import logger, { logContext } from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -30,10 +30,9 @@ const createApp = (): Application => {
       rootValue: propertyResolvers.getRootValue(),
       graphiql: NODE_ENV === 'development',
       customFormatErrorFn: (error) => {
-        logger.error('GraphQL Error', { 
-          message: error.message,
+        logContext.error('GraphQL Error', error, {
           locations: error.locations,
-          path: error.path 
+          path: error.path,
         });
         return {
           message: error.message,
@@ -46,19 +45,12 @@ const createApp = (): Application => {
 
   // Health check endpoint
   app.get('/health', async (req, res) => {
-    try {
-      const dbHealthy = AppDataSource.isInitialized;
-      res.status(dbHealthy ? 200 : 503).json({
-        status: dbHealthy ? 'healthy' : 'unhealthy',
-        database: dbHealthy ? 'connected' : 'disconnected',
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error) {
-      res.status(503).json({
-        status: 'unhealthy',
-        error: 'Health check failed',
-      });
-    }
+    const dbHealthy = AppDataSource.isInitialized;
+    res.status(dbHealthy ? 200 : 503).json({
+      status: dbHealthy ? 'healthy' : 'unhealthy',
+      database: dbHealthy ? 'connected' : 'disconnected',
+      timestamp: new Date().toISOString(),
+    });
   });
 
   return app;
@@ -68,25 +60,20 @@ const createApp = (): Application => {
  * Start the server with database initialization
  */
 const startServer = async (): Promise<void> => {
-  try {
-    // Initialize database connection
-    await initializeDatabase();
+  // Initialize database connection
+  await initializeDatabase();
 
-    // Create and start Express app
-    const app = createApp();
+  // Create and start Express app
+  const app = createApp();
 
-    app.listen(PORT, () => {
-      logger.info(`🚀 Server running in ${NODE_ENV} mode`);
-      logger.info(`📍 GraphQL endpoint: http://localhost:${PORT}/graphql`);
-      logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
-      if (NODE_ENV === 'development') {
-        logger.info(`🎮 GraphQL Playground available at /graphql`);
-      }
-    });
-  } catch (error) {
-    logger.error('❌ Failed to start server', { error });
-    process.exit(1);
-  }
+  app.listen(PORT, () => {
+    logger.info(`🚀 Server running in ${NODE_ENV} mode`);
+    logger.info(`📍 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+    logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
+    if (NODE_ENV === 'development') {
+      logger.info(`🎮 GraphQL Playground available at /graphql`);
+    }
+  });
 };
 
 /**
@@ -95,21 +82,30 @@ const startServer = async (): Promise<void> => {
 const gracefulShutdown = async (signal: string): Promise<void> => {
   logger.info(`${signal} received, closing gracefully...`);
 
-  try {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
-      logger.info('✅ Database connections closed');
-    }
-    process.exit(0);
-  } catch (error) {
-    logger.error('❌ Error during shutdown', { error });
-    process.exit(1);
+  if (AppDataSource.isInitialized) {
+    await AppDataSource.destroy();
+    logger.info('✅ Database connections closed');
   }
+  process.exit(0);
 };
 
 // Register shutdown handlers
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+// Global error handlers
+process.on('uncaughtException', (error: Error) => {
+  logContext.error('Uncaught Exception', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: any) => {
+  logContext.error('Unhandled Rejection', reason);
+  process.exit(1);
+});
+
 // Start the server
-startServer();
+startServer().catch((error) => {
+  logContext.error('Failed to start server', error);
+  process.exit(1);
+});

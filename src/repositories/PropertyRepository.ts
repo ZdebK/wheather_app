@@ -2,7 +2,7 @@ import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Property } from '../entities/Property';
 import { PropertyFilter, PropertySort, SortOrder } from '../types/property.types';
-import logger from '../utils/logger';
+import logger, { logContext } from '../utils/logger';
 import { HandleErrors } from '../decorators/error-handler';
 
 /**
@@ -23,7 +23,7 @@ export class PropertyRepository {
   async create(propertyData: Partial<Property>): Promise<Property> {
     const property = this.repository.create(propertyData);
     const savedProperty = await this.repository.save(property);
-    this.logPropertyAction('created', savedProperty.id);
+    logger.info(`Property created: ${savedProperty.id}`);
     return savedProperty;
   }
 
@@ -37,7 +37,6 @@ export class PropertyRepository {
     queryBuilder = this.applySorting(queryBuilder, sort);
 
     const properties = await queryBuilder.getMany();
-    logger.info(`Found ${properties.length} properties`);
     return properties;
   }
 
@@ -79,11 +78,6 @@ export class PropertyRepository {
   @HandleErrors
   async findById(id: string): Promise<Property | null> {
     const property = await this.repository.findOne({ where: { id } });
-    if (property) {
-      this.logPropertyAction('found', id);
-    } else {
-      logger.warn(`Property not found with ID: ${id}`);
-    }
     return property;
   }
 
@@ -94,18 +88,6 @@ export class PropertyRepository {
   async delete(id: string): Promise<boolean> {
     const result = await this.repository.delete(id);
     const deleted = (result.affected ?? 0) > 0;
-    if (deleted) {
-      this.logPropertyAction('deleted', id);
-    } else {
-      logger.warn(`No property found to delete with ID: ${id}`);
-    }
     return deleted;
-  }
-
-  /**
-   * Helper to log property actions - DRY principle
-   */
-  private logPropertyAction(action: 'created' | 'found' | 'deleted', id: string): void {
-    logger.info(`Property ${action} with ID: ${id}`);
   }
 }
