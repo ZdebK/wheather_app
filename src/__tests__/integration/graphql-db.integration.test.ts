@@ -105,7 +105,7 @@ describe('GraphQL + DB integration', () => {
     expect(created.street).toBe(variables.input.street);
     expect((created.weatherData as IWeatherData).temperature).toBe(72);
     expect(created.lat).toBeCloseTo(33.61, 2);
-    expect(created.long).toBeCloseTo(111.73, 2);
+    expect(created.long).toBeCloseTo(-111.73, 2);
 
     // Assert DB persisted
     const all = await ds.getRepository(Property).find();

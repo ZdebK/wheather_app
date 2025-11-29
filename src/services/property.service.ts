@@ -2,7 +2,7 @@ import { validate } from 'class-validator';
 import { Property } from '../entities/property.entity';
 import { PropertyRepository } from '../repositories/property.repository';
 import { WeatherService, IWeatherService } from './weather.service';
-import { CreatePropertyInput, IPropertyFilter, IPropertySort } from '../types/property.types';
+import { CreatePropertyInput, IPropertyFilter, IPropertySort, IValidationErrorDetail } from '../types/property.types';
 import { IWeatherData } from '../types/weather.types';
 import { HandleErrors } from '../decorators/error-handler';
 import { ValidationError, NotFoundError } from '../errors/custom-errors';
@@ -48,14 +48,21 @@ export class PropertyService implements IPropertyService {
    * Validate input using class-validator - DRY principle
    */
   private async validate(input: CreatePropertyInput): Promise<void> {
-    const inputInstance = Object.assign(new CreatePropertyInput(), input),
+    const 
+      inputInstance = Object.assign(new CreatePropertyInput(), input),
       errors = await validate(inputInstance);
 
     if (errors.length > 0) {
-      const errorMessages = errors
-        .map((err) => Object.values(err.constraints || {}).join(', '))
-        .join('; ');
-      throw new ValidationError(`Validation failed: ${errorMessages}`, errors);
+      const 
+        errorMessages = errors
+          .map((err) => Object.values(err.constraints || {}).join(', '))
+          .join('; '),
+        errorDetails: IValidationErrorDetail[] = errors.map((err) => ({
+          property: err.property,
+          constraints: err.constraints || {},
+          value: err.value,
+        }));
+      throw new ValidationError(`Validation failed: ${errorMessages}`, errorDetails);
     }
   }
 

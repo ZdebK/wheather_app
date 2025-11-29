@@ -1,11 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import { WeatherService } from '../../services/weather.service';
 
-// Mock axios
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>,
-
-  // Mock axios.isAxiosError
   mockIsAxiosError = axios.isAxiosError as jest.MockedFunction<typeof axios.isAxiosError>;
 
 describe('WeatherService', () => {
@@ -14,9 +11,8 @@ describe('WeatherService', () => {
   beforeEach(() => {
     weatherService = WeatherService.getInstance();
     jest.clearAllMocks();
-    // Reset axios.isAxiosError to default behavior
-    mockIsAxiosError.mockImplementation((payload: any): payload is AxiosError => {
-      return payload && payload.isAxiosError === true;
+    mockIsAxiosError.mockImplementation((payload: unknown): payload is AxiosError => {
+      return payload !== null && typeof payload === 'object' && 'isAxiosError' in payload && payload.isAxiosError === true;
     });
   });
 

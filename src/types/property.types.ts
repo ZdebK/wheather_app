@@ -25,6 +25,15 @@ export class CreatePropertyInput {
 }
 
 /**
+ * Validation error detail structure
+ */
+export interface IValidationErrorDetail {
+  property: string;
+  constraints: Record<string, string>;
+  value?: unknown;
+}
+
+/**
  * Filter options for querying properties
  */
 export interface IPropertyFilter {

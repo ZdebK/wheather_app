@@ -3,11 +3,9 @@ import { PropertyRepository } from '../../repositories/property.repository';
 import { WeatherService } from '../../services/weather.service';
 import { Property } from '../../entities/property.entity';
 import { SortOrder } from '../../types/property.types';
-// ValidationError and NotFoundError used in test expectations
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ValidationError, NotFoundError } from '../../errors/custom-errors';
 
-// Mock dependencies
 jest.mock('../../repositories/property.repository');
 jest.mock('../../services/weather.service');
 
@@ -17,20 +15,18 @@ describe('PropertyService', () => {
     mockWeatherService: jest.Mocked<WeatherService>;
 
   beforeEach(() => {
-    // Create mocks
     mockPropertyRepository = {
       create: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(),
       deleteById: jest.fn(),
-      delete: jest.fn(),  // Add delete method
-    } as any;
+      delete: jest.fn(),
+    } as unknown as jest.Mocked<PropertyRepository>;
 
     mockWeatherService = {
       fetchWeatherData: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<WeatherService>;
 
-    // Initialize service with mocks
     propertyService = new PropertyService(mockPropertyRepository, mockWeatherService);
 
     jest.clearAllMocks();
@@ -136,7 +132,6 @@ describe('PropertyService', () => {
         'Failed to fetch weather data: timeout',
       );
 
-      // Property should NOT be created if weather fetch fails
       expect(mockPropertyRepository.create).not.toHaveBeenCalled();
     });
   });
