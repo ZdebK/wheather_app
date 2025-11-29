@@ -102,16 +102,23 @@ export class WeatherService implements IWeatherService {
   }
 
   private parseResponse(response: IWeatherstackResponse) {
-    const { location, current } = response,
+    const { location, current } = response;
 
-      weatherData: IWeatherData = {
-        temperature: current.temperature,
-        weather_descriptions: current.weather_descriptions,
-        humidity: current.humidity,
-        wind_speed: current.wind_speed,
-        observation_time: current.observation_time,
-        feelslike: current.feelslike,
-      },
+    // Validate USA-only requirement
+    if (location.country !== 'United States') {
+      throw new WeatherAPIError(
+        `Only properties within the United States are supported. Provided location is in: ${location.country}`,
+      );
+    }
+
+    const weatherData: IWeatherData = {
+      temperature: current.temperature,
+      weather_descriptions: current.weather_descriptions,
+      humidity: current.humidity,
+      wind_speed: current.wind_speed,
+      observation_time: current.observation_time,
+      feelslike: current.feelslike,
+    },
 
       lat = parseFloat(location.lat),
       long = parseFloat(location.lon);

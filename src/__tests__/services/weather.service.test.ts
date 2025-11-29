@@ -36,6 +36,7 @@ describe('WeatherService', () => {
         data: {
           location: {
             name: 'Fountain Hills',
+            country: 'United States',
             lat: '33.609',
             lon: '-111.729',
           },
@@ -101,6 +102,7 @@ describe('WeatherService', () => {
         data: {
           location: {
             name: 'Test',
+            country: 'United States',
             lat: '0',
             lon: '0',
           },
@@ -115,11 +117,39 @@ describe('WeatherService', () => {
       );
     });
 
+    it('should reject non-USA locations', async () => {
+      const mockResponse = {
+        data: {
+          location: {
+            name: 'Toronto',
+            country: 'Canada',
+            lat: '43.70',
+            lon: '-79.42',
+          },
+          current: {
+            temperature: 20,
+            weather_descriptions: ['Cloudy'],
+            humidity: 60,
+            wind_speed: 10,
+            observation_time: '03:00 PM',
+            feelslike: 18,
+          },
+        },
+      };
+
+      mockedAxios.get.mockResolvedValueOnce(mockResponse);
+
+      await expect(weatherService.fetchWeatherData('123 Main St, Toronto, ON, Canada')).rejects.toThrow(
+        'Only properties within the United States are supported',
+      );
+    });
+
     it('should retry on timeout and eventually succeed', async () => {
       const mockResponse = {
         data: {
           location: {
             name: 'Fountain Hills',
+            country: 'United States',
             lat: '33.609',
             lon: '-111.729',
           },
