@@ -2,24 +2,19 @@ import winston from 'winston';
 import path from 'path';
 import { config } from '../config';
 
-const NODE_ENV = config.nodeEnv,
-  LOG_LEVEL = config.log.level,
-
-  /**
+/**
  * Custom log format for structured logging
  */
+const
   structuredFormat = winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
-    const contextStr = context ? `[${context}]` : '',
+    const
+      contextStr = context ? `[${context}]` : '',
       metaStr = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
+
     return `${timestamp} [${level}]${contextStr}: ${message}${metaStr}`;
   }),
-
-  /**
- * Winston logger configuration with structured logging
- * Supports console and file transports with contextual information
- */
   logger = winston.createLogger({
-    level: LOG_LEVEL,
+    level: config.log.level,
     format: winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
       winston.format.errors({ stack: true }),
@@ -64,46 +59,47 @@ export const logContext = {
   /**
    * Log GraphQL operations
    */
-  graphql: (operation: string, meta?: any) => {
+  graphql: (operation: string, meta?: Record<string, unknown>) => {
     logger.info(operation, { context: 'GraphQL', ...meta });
   },
 
   /**
    * Log database operations
    */
-  database: (operation: string, meta?: any) => {
+  database: (operation: string, meta?: Record<string, unknown>) => {
     logger.debug(operation, { context: 'Database', ...meta });
   },
 
   /**
    * Log external API calls
    */
-  api: (operation: string, meta?: any) => {
+  api: (operation: string, meta?: Record<string, unknown>) => {
     logger.info(operation, { context: 'API', ...meta });
   },
 
   /**
    * Log service operations
    */
-  service: (operation: string, meta?: any) => {
+  service: (operation: string, meta?: Record<string, unknown>) => {
     logger.debug(operation, { context: 'Service', ...meta });
   },
 
   /**
    * Log repository operations
    */
-  repository: (operation: string, meta?: any) => {
+  repository: (operation: string, meta?: Record<string, unknown>) => {
     logger.debug(operation, { context: 'Repository', ...meta });
   },
 
   /**
    * Log errors with full context
    */
-  error: (message: string, error: any, meta?: any) => {
+  error: (message: string, error: Error | unknown, meta?: Record<string, unknown>) => {
+    const err = error as Error;
     logger.error(message, {
       context: 'Error',
-      error: error?.message,
-      stack: error?.stack,
+      error: err?.message,
+      stack: err?.stack,
       ...meta,
     });
   },

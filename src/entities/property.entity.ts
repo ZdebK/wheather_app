@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { IWeatherData } from '../types/weather.types';
 
 /**
  * Property Entity - represents a property record in the database
@@ -21,7 +22,7 @@ export class Property {
     zipCode: string;
 
   @Column({ type: 'jsonb', nullable: true })
-    weatherData: Record<string, any>;
+    weatherData: IWeatherData | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
     lat: number;

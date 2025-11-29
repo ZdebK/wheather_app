@@ -150,7 +150,7 @@ describe('PropertyService', () => {
           city: 'City 1',
           state: 'AZ',
           zipCode: '12345',
-          weatherData: {},
+          weatherData: null,
           lat: 0,
           long: 0,
           createdAt: new Date(),
@@ -188,11 +188,11 @@ describe('PropertyService', () => {
     it('should return property by ID', async () => {
       const mockProperty: Property = {
         id: 'test-id',
-        street: 'Street 1',
-        city: 'City 1',
+        street: '123 Test St',
+        city: 'Test City',
         state: 'AZ',
         zipCode: '12345',
-        weatherData: {},
+        weatherData: null,
         lat: 0,
         long: 0,
         createdAt: new Date(),

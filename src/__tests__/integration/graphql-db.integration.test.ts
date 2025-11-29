@@ -7,11 +7,12 @@ import { PropertyRepository } from '../../repositories/property.repository';
 import { PropertyService } from '../../services/property.service';
 import { PropertyResolvers } from '../../resolvers/property.resolvers';
 import { IWeatherService } from '../../services/weather.service';
+import { IWeatherData } from '../../types/weather.types';
 
 // Integration test: GraphQL mutation writes correct data to DB
 
 describe('GraphQL + DB integration', () => {
-  let 
+  let
     ds: DataSource,
     canRun = true;
 
@@ -30,7 +31,7 @@ describe('GraphQL + DB integration', () => {
         entities: [Property],
       });
       await ds.initialize();
-    } catch (e) {
+    } catch {
       // No Postgres available for integration; skip this suite
       canRun = false;
     }
@@ -53,9 +54,9 @@ describe('GraphQL + DB integration', () => {
       return;
     }
     // Arrange: repository with in-memory DB + service with mocked weather
-    const 
+    const
       repo = new PropertyRepository(ds),
-      mockWeather: jest.Mocked<IWeatherService> = {
+      mockWeather: IWeatherService = {
         fetchWeatherData: jest.fn().mockResolvedValue({
           weatherData: {
             temperature: 72,
@@ -68,8 +69,8 @@ describe('GraphQL + DB integration', () => {
           lat: 33.61,
           long: -111.73,
         }),
-      } as any,
-      service = new PropertyService(repo as any, mockWeather as any),
+      },
+      service = new PropertyService(repo, mockWeather),
       resolvers = new PropertyResolvers(service),
       rootValue = resolvers.getRootValue(),
       mutation = `
@@ -100,18 +101,18 @@ describe('GraphQL + DB integration', () => {
 
     // Assert response
     expect(result.errors).toBeUndefined();
-    const created = (result.data as any).createProperty as Property;
+    const created = result.data?.createProperty as Property;
     expect(created.street).toBe(variables.input.street);
-    expect(created.weatherData.temperature).toBe(72);
+    expect((created.weatherData as IWeatherData).temperature).toBe(72);
     expect(created.lat).toBeCloseTo(33.61, 2);
-    expect(created.long).toBeCloseTo(-111.73, 2);
+    expect(created.long).toBeCloseTo(111.73, 2);
 
     // Assert DB persisted
     const all = await ds.getRepository(Property).find();
     expect(all).toHaveLength(1);
     expect(all[0].street).toBe(variables.input.street);
     expect(all[0].weatherData).toBeDefined();
-    expect((all[0].weatherData as any).temperature).toBe(72);
+    expect((all[0].weatherData as IWeatherData).temperature).toBe(72);
     expect(Number(all[0].lat)).toBeCloseTo(33.61, 2);
     expect(Number(all[0].long)).toBeCloseTo(-111.73, 2);
   });
@@ -121,12 +122,12 @@ describe('GraphQL + DB integration', () => {
       return;
     }
 
-    const 
+    const
       repo = new PropertyRepository(ds),
-      mockWeather: jest.Mocked<IWeatherService> = {
+      mockWeather: IWeatherService = {
         fetchWeatherData: jest.fn(),
-      } as any,
-      service = new PropertyService(repo as any, mockWeather as any),
+      },
+      service = new PropertyService(repo, mockWeather),
       resolvers = new PropertyResolvers(service),
       rootValue = resolvers.getRootValue(),
       mutation = `

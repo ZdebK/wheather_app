@@ -1,7 +1,7 @@
 import { PropertyResolvers } from '../../resolvers/property.resolvers';
 import { PropertyService } from '../../services/property.service';
 import { Property } from '../../entities/property.entity';
-import { SortOrder, CreatePropertyInput } from '../../types/property.types';
+import { SortOrder } from '../../types/property.types';
 
 type ResolversRoot = ReturnType<PropertyResolvers['getRootValue']>;
 
@@ -200,8 +200,9 @@ describe('PropertyResolvers', () => {
       const result = await resolvers.property({ id: 'abc-123' });
 
       expect(result.weatherData).toBeDefined();
-      expect(result.weatherData.temperature).toBe(80);
-      expect(result.weatherData.weather_descriptions).toContain('Partly Cloudy');
+      expect(result.weatherData).toBeDefined();
+      expect(result.weatherData?.temperature).toBe(80);
+      expect(result.weatherData?.weather_descriptions).toContain('Partly Cloudy');
     });
 
     it('includes coordinates', async () => {
@@ -245,7 +246,8 @@ describe('PropertyResolvers', () => {
 
       expect(result).toEqual(createdProperty);
       expect(result.weatherData).toBeDefined();
-      expect(result.weatherData.temperature).toBe(75);
+      expect(result.weatherData).toBeDefined();
+      expect(result.weatherData?.temperature).toBe(75);
       expect(mockPropertyService.createProperty).toHaveBeenCalledWith(validInput);
     });
 
