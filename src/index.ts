@@ -1,23 +1,49 @@
 import 'reflect-metadata';
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import { graphqlHTTP } from 'express-graphql';
-import dotenv from 'dotenv';
 import { AppDataSource, initializeDatabase } from './data-source';
 import { schema } from './graphql/schema';
 import { PropertyResolvers } from './resolvers/property.resolvers';
 import logger, { logContext } from './utils/logger';
-
-// Load environment variables
-dotenv.config();
+import { config, isDevelopment, isTest } from './config';
 
 const 
-  PORT = process.env.PORT || 4000,
-  NODE_ENV = process.env.NODE_ENV || 'development',
+  // Simple in-memory rate limiter (per-IP) for recruitment task
+  createInMemoryRateLimiter = (maxRequests: number, windowMs: number) => {
+    type HitRecord = { count: number; reset: number };
+    const hits = new Map<string, HitRecord>();
+
+    return (req: Request, res: Response, next: NextFunction): void => {
+      if (isTest) {
+        return next();
+      }
+
+      const 
+        key = (req.ip || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown') as string,
+        now = Date.now(),
+        current = hits.get(key),
+        record: HitRecord = current && now <= current.reset
+          ? { count: current.count + 1, reset: current.reset }
+          : { count: 1, reset: now + windowMs };
+
+      hits.set(key, record);
+
+      if (record.count > maxRequests) {
+        res.status(429).json({ error: 'Too many requests' });
+        return;
+      }
+      next();
+    };
+  },
   createApp = (): Application => {
     const app = express(),
 
       // Initialize resolvers
       propertyResolvers = new PropertyResolvers();
+
+    // Basic rate limiting for GraphQL endpoint (per IP)
+    app.set('trust proxy', 1);
+    app.use('/graphql', createInMemoryRateLimiter(config.rateLimit.max, config.rateLimit.windowMs));
 
     // GraphQL endpoint
     app.use(
@@ -25,7 +51,7 @@ const
       graphqlHTTP({
         schema,
         rootValue: propertyResolvers.getRootValue(),
-        graphiql: NODE_ENV === 'development',
+        graphiql: isDevelopment,
         customFormatErrorFn: (error) => {
           logContext.error('GraphQL Error', error, {
             locations: error.locations,
@@ -59,11 +85,11 @@ const
     // Create and start Express app
     const app = createApp();
 
-    app.listen(PORT, () => {
-      logger.info(`🚀 Server running in ${NODE_ENV} mode`);
-      logger.info(`📍 GraphQL endpoint: http://localhost:${PORT}/graphql`);
-      logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
-      if (NODE_ENV === 'development') {
+    app.listen(config.port, () => {
+      logger.info(`🚀 Server running in ${config.nodeEnv} mode`);
+      logger.info(`📍 GraphQL endpoint: ${config.protocol}://${config.host}:${config.port}/graphql`);
+      logger.info(`🏥 Health check: ${config.protocol}://${config.host}:${config.port}/health`);
+      if (isDevelopment) {
         logger.info('🎮 GraphQL Playground available at /graphql');
       }
     });

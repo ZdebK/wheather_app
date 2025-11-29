@@ -3,6 +3,7 @@ import { IWeatherstackResponse, IWeatherData } from '../types/weather.types';
 import { HandleErrors } from '../decorators/error-handler';
 import { WeatherAPIError } from '../errors/custom-errors';
 import logger, { logContext } from '../utils/logger';
+import { config, isTest } from '../config';
 
 /**
  * WeatherService interface - defines contract for weather operations
@@ -27,8 +28,8 @@ export class WeatherService implements IWeatherService {
   private readonly timeout = 15000;
 
   private constructor() {
-    this.apiKey = process.env.WEATHERSTACK_API_KEY || '';
-    if (!this.apiKey && process.env.NODE_ENV !== 'test') {
+    this.apiKey = config.weatherstack.apiKey;
+    if (!this.apiKey && !isTest) {
       logger.warn('WEATHERSTACK_API_KEY not found in environment variables');
     }
   }

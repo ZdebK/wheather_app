@@ -77,13 +77,20 @@ DB_NAME=weather_app_db
 DB_USER=your_username
 DB_PASSWORD=your_password
 DB_SSL=true
+DB_SCHEMA=public
 
 # Weatherstack API
 WEATHERSTACK_API_KEY=your_api_key_here
 
 # Application
 PORT=4000
+APP_HOST=localhost
+APP_PROTOCOL=http
 NODE_ENV=development
+
+# Simple Rate Limiting (in-memory)
+RATE_LIMIT_MAX=60
+RATE_LIMIT_WINDOW_MS=60000
 ```
 
 ### Database Setup
@@ -101,6 +108,7 @@ npm run dev
 Server will start at: `http://localhost:4000/graphql`
 
 ### VS Code Debugging
+- Auto-open browser uses `APP_PROTOCOL`, `APP_HOST`, `PORT` in logs; update `.env` if deploying behind HTTPS.
 
 - Use "Launch GraphQL Server (TS)" to run with ts-node and breakpoints.
 - Or use "Start Dev (Nodemon + Inspect)" for auto-reload + debugger.
@@ -299,6 +307,14 @@ Notes:
 - Jest loads env and decorators globally via `setupFiles` (dotenv/config, reflect-metadata).
 - Requires Postgres env vars (`.env`) and access to the DB.
 
+## 🚦 Rate Limiting (Simple)
+
+Lightweight per-IP rate limiting is enabled for `/graphql` using an in-memory counter (no extra deps), configurable via env:
+- `RATE_LIMIT_MAX`: requests per window per IP (default 60)
+- `RATE_LIMIT_WINDOW_MS`: window size in ms (default 60000)
+
+Disabled in tests (`NODE_ENV=test`). For production-scale environments, consider a Redis-backed limiter.
+
 ## 📦 Dependencies
 
 ### Production
@@ -340,17 +356,6 @@ Notes:
 
 - **GraphQL**: `http://localhost:4000/graphql`
 - **Health Check**: `http://localhost:4000/health`
-
-## 📚 Further Improvements
-
-- [ ] Add update property mutation
-- [ ] Implement pagination for properties query
-- [ ] Add authentication/authorization
-- [ ] Add GraphQL integration tests with test database
-- [ ] Add database migrations for production
-- [ ] Implement caching layer (Redis)
-- [ ] Add rate limiting for API
-- [ ] Docker containerization
 
 ## 📄 License
 

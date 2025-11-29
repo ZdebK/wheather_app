@@ -1,10 +1,8 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import dotenv from 'dotenv';
 import { Property } from './entities/property.entity';
 import { logContext } from './utils/logger';
-
-dotenv.config();
+import { config, isDevelopment } from './config';
 
 /**
  * TypeORM DataSource configuration
@@ -12,16 +10,17 @@ dotenv.config();
  */
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl: process.env.DB_SSL === 'true' ? {
+  host: config.db.host,
+  port: config.db.port,
+  username: config.db.user,
+  password: config.db.password,
+  database: config.db.name,
+  schema: config.db.schema,
+  ssl: config.db.ssl ? {
     rejectUnauthorized: false,
   } : false,
-  synchronize: process.env.NODE_ENV === 'development', // Auto-create tables in dev
-  logging: process.env.NODE_ENV === 'development',
+  synchronize: isDevelopment, // Auto-create tables in dev
+  logging: isDevelopment,
   entities: [Property],
   migrations: [],
   subscribers: [],

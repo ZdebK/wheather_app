@@ -1,8 +1,9 @@
 import winston from 'winston';
 import path from 'path';
+import { config } from '../config';
 
-const NODE_ENV = process.env.NODE_ENV || 'development',
-  LOG_LEVEL = process.env.LOG_LEVEL || (NODE_ENV === 'production' ? 'info' : 'debug'),
+const NODE_ENV = config.nodeEnv,
+  LOG_LEVEL = config.log.level,
 
   /**
  * Custom log format for structured logging
