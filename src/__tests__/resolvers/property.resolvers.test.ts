@@ -312,5 +312,15 @@ describe('PropertyResolvers', () => {
         'Property with ID invalid-id not found',
       );
     });
+
+    it('throws error when id is empty string', async () => {
+      mockPropertyService.deleteProperty.mockRejectedValue(
+        new Error('Property ID is required'),
+      );
+
+      await expect(resolvers.deleteProperty({ id: '' })).rejects.toThrow(
+        'Property ID is required',
+      );
+    });
   });
 });

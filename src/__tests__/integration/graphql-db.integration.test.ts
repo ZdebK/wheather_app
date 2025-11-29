@@ -117,4 +117,40 @@ describe('GraphQL + DB integration', () => {
     expect(Number(all[0].lat)).toBeCloseTo(33.61, 2);
     expect(Number(all[0].long)).toBeCloseTo(-111.73, 2);
   });
+
+  it('prevents deletion of non-existent property', async () => {
+    if (!canRun) {
+      return;
+    }
+
+    const repo = new PropertyRepository(ds);
+    const mockWeather: jest.Mocked<IWeatherService> = {
+      fetchWeatherData: jest.fn(),
+    } as any;
+
+    const service = new PropertyService(repo as any, mockWeather as any);
+    const resolvers = new PropertyResolvers(service);
+    const rootValue = resolvers.getRootValue();
+
+    const mutation = `
+      mutation DeleteProperty($id: ID!) {
+        deleteProperty(id: $id)
+      }
+    `;
+
+    const variables = {
+      id: '00000000-0000-0000-0000-000000000000', // Valid UUID format that doesn't exist
+    };
+
+    // Act: try to delete non-existent property
+    const result = await graphql({ schema, source: mutation, variableValues: variables, rootValue });
+
+    // Assert: should have error
+    expect(result.errors).toBeDefined();
+    expect(result.errors?.[0].message).toContain('Property with ID 00000000-0000-0000-0000-000000000000 not found');
+
+    // Assert: DB should still be empty (no side effects)
+    const all = await ds.getRepository(Property).find();
+    expect(all).toHaveLength(0);
+  });
 });

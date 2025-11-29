@@ -86,13 +86,19 @@ export class PropertyService implements IPropertyService {
     };
   }
 
-  @HandleErrors
-  async getAllProperties(filter?: IPropertyFilter, sort?: IPropertySort): Promise<Property[]> {
-    return await this.propertyRepository.findAll(filter, sort);
+  /**
+   * Validate ID is not empty - DRY principle
+   */
+  private validateId(id: string): void {
+    if (!id || id.trim() === '') {
+      throw new ValidationError('Property ID is required');
+    }
   }
 
-  @HandleErrors
-  async getPropertyById(id: string): Promise<Property> {
+  /**
+   * Ensure property exists - DRY principle
+   */
+  private async ensurePropertyExists(id: string): Promise<Property> {
     const property = await this.propertyRepository.findById(id);
     if (!property) {
       throw new NotFoundError(`Property with ID ${id} not found`);
@@ -101,11 +107,22 @@ export class PropertyService implements IPropertyService {
   }
 
   @HandleErrors
+  async getAllProperties(filter?: IPropertyFilter, sort?: IPropertySort): Promise<Property[]> {
+    return await this.propertyRepository.findAll(filter, sort);
+  }
+
+  @HandleErrors
+  async getPropertyById(id: string): Promise<Property> {
+    this.validateId(id);
+    return await this.ensurePropertyExists(id);
+  }
+
+  @HandleErrors
   async deleteProperty(id: string): Promise<boolean> {
+    this.validateId(id);
+    await this.ensurePropertyExists(id);
+
     const deleted = await this.propertyRepository.delete(id);
-    if (!deleted) {
-      throw new NotFoundError(`Property with ID ${id} not found`);
-    }
     return deleted;
   }
 }

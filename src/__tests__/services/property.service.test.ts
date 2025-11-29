@@ -213,24 +213,69 @@ describe('PropertyService', () => {
         'Property with ID invalid-id not found',
       );
     });
+
+    it('should throw error when id is empty string', async () => {
+      await expect(propertyService.getPropertyById('')).rejects.toThrow(
+        'Property ID is required',
+      );
+      expect(mockPropertyRepository.findById).not.toHaveBeenCalled();
+    });
   });
 
   describe('deleteProperty', () => {
     it('should successfully delete property', async () => {
+      const existingProperty: Property = {
+        id: 'test-id',
+        street: '123 Test St',
+        city: 'Test City',
+        state: 'TC',
+        zipCode: '12345',
+        weatherData: {
+          temperature: 20,
+          weather_descriptions: ['Clear'],
+          humidity: 50,
+          wind_speed: 10,
+          observation_time: '12:00 PM',
+          feelslike: 20,
+        },
+        lat: 0,
+        long: 0,
+        createdAt: new Date(),
+      };
+
+      mockPropertyRepository.findById.mockResolvedValueOnce(existingProperty);
       mockPropertyRepository.delete.mockResolvedValueOnce(true);
 
       const result = await propertyService.deleteProperty('test-id');
 
       expect(result).toBe(true);
+      expect(mockPropertyRepository.findById).toHaveBeenCalledWith('test-id');
       expect(mockPropertyRepository.delete).toHaveBeenCalledWith('test-id');
     });
 
     it('should throw error when property to delete not found', async () => {
-      mockPropertyRepository.delete.mockResolvedValueOnce(false);
+      mockPropertyRepository.findById.mockResolvedValueOnce(null);
 
       await expect(propertyService.deleteProperty('invalid-id')).rejects.toThrow(
         'Property with ID invalid-id not found',
       );
+      expect(mockPropertyRepository.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when id is empty string', async () => {
+      await expect(propertyService.deleteProperty('')).rejects.toThrow(
+        'Property ID is required',
+      );
+      expect(mockPropertyRepository.findById).not.toHaveBeenCalled();
+      expect(mockPropertyRepository.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when id is whitespace only', async () => {
+      await expect(propertyService.deleteProperty('   ')).rejects.toThrow(
+        'Property ID is required',
+      );
+      expect(mockPropertyRepository.findById).not.toHaveBeenCalled();
+      expect(mockPropertyRepository.delete).not.toHaveBeenCalled();
     });
   });
 });

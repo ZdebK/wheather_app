@@ -9,3 +9,11 @@ logs/
 .env.local
 .env.*.local
 envpostgre
+
+# VS Code local debug settings
+.vscode/
+
+# Development helper scripts
+check-db.ts
+test-queries.graphql
+test-edge-cases.graphql
