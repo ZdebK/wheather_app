@@ -107,13 +107,6 @@ npm run dev
 
 Server will start at: `http://localhost:4000/graphql`
 
-### VS Code Debugging
-- Auto-open browser uses `APP_PROTOCOL`, `APP_HOST`, `PORT` in logs; update `.env` if deploying behind HTTPS.
-
-- Use "Launch GraphQL Server (TS)" to run with ts-node and breakpoints.
-- Or use "Start Dev (Nodemon + Inspect)" for auto-reload + debugger.
-- The browser opens automatically at `http://localhost:4000/graphql` in these launch configs.
-
 ### Build for Production
 
 ```bash
@@ -367,10 +360,6 @@ Professional TypeScript rules enforced:
 - `@typescript-eslint/naming-convention` - I-prefix for interfaces
 - `@typescript-eslint/no-explicit-any: warn` - Type safety encouraged
 
-**Status**: 0 errors, 23 warnings (only 'any' type usage)
-
-## 🧪 Testing
-
 ## 🧪 Testing
 
 Comprehensive automated test suite covering business logic, API integration, and error handling.
@@ -380,10 +369,10 @@ Comprehensive automated test suite covering business logic, API integration, and
 ```
 src/__tests__/
 ├── services/
-│   ├── property.service.test.ts      # Property business logic tests (16 tests)
-│   └── weather.service.test.ts       # Weatherstack API integration tests (7 tests)
+│   ├── property.service.test.ts      # Property business logic tests (17 tests)
+│   └── weather.service.test.ts       # Weatherstack API integration tests (8 tests)
 ├── resolvers/
-│   └── property.resolvers.test.ts    # GraphQL resolver tests (22 tests)
+│   └── property.resolvers.test.ts    # GraphQL resolver tests (20 tests)
 └── integration/
     └── graphql-db.integration.test.ts # End-to-end DB persistence tests (2 tests)
 ```
@@ -413,40 +402,56 @@ $env:RUN_INTEGRATION_TESTS='true'; npm run test:integration
 
 **Total: 47 tests passing**
 
-#### WeatherService Tests (7 tests)
-- ✅ Singleton pattern - returns single shared instance
-- ✅ fetchWeatherData - successful weather data fetch with coordinates
-- ✅ fetchWeatherData - USA-only location validation (rejects non-US addresses)
-- ✅ fetchWeatherData - invalid API response handling
-- ✅ fetchWeatherData - timeout recovery with retry logic (3 attempts, exponential backoff)
-- ✅ fetchWeatherData - 4xx client error handling (no retry)
-- ✅ fetchWeatherData - max retries failure after persistent errors
+#### WeatherService Tests (8 tests)
+- ✅ Singleton pattern - returns the same instance on multiple calls
+- ✅ Successfully fetch weather data and coordinates
+- ✅ Throw error on invalid API response (missing location)
+- ✅ Throw error on invalid API response (missing current)
+- ✅ Reject non-USA locations
+- ✅ Retry on timeout and eventually succeed
+- ✅ Not retry on 4xx client errors
+- ✅ Fail after max retries on persistent errors
 
-#### PropertyService Tests (16 tests)
-- ✅ createProperty - property creation with weather data integration
-- ✅ createProperty - input validation (state format, zip code format, required fields)
-- ✅ createProperty - **weather API failure abortion** (Requirement #4 - property not created if weather fetch fails)
-- ✅ getAllProperties - property retrieval with filtering (city, state, zipCode)
-- ✅ getAllProperties - sorting by creation date (ASC/DESC)
-- ✅ getPropertyById - property retrieval by ID
-- ✅ getPropertyById - empty ID validation
-- ✅ getPropertyById - not found error handling
-- ✅ deleteProperty - successful deletion with ID validation
-- ✅ deleteProperty - empty ID validation (empty string, whitespace)
-- ✅ deleteProperty - not found error handling
-- ✅ deleteProperty - prevents deletion of non-existent properties
+#### PropertyService Tests (17 tests)
+- ✅ createProperty - successfully create a property with weather data
+- ✅ createProperty - fail validation with invalid state (not 2 letters)
+- ✅ createProperty - fail validation with invalid state (lowercase)
+- ✅ createProperty - fail validation with invalid zipCode (not 5 digits)
+- ✅ createProperty - fail validation with invalid zipCode (contains letters)
+- ✅ createProperty - fail validation with empty street
+- ✅ createProperty - abort operation when weather API fails (requirement #4)
+- ✅ getAllProperties - return all properties without filters
+- ✅ getAllProperties - return filtered properties by city
+- ✅ getAllProperties - return sorted properties
+- ✅ getPropertyById - return property by ID
+- ✅ getPropertyById - throw error when property not found
+- ✅ getPropertyById - throw error when id is empty string
+- ✅ deleteProperty - successfully delete property
+- ✅ deleteProperty - throw error when property to delete not found
+- ✅ deleteProperty - throw error when id is empty string
+- ✅ deleteProperty - throw error when id is whitespace only
 
-#### PropertyResolvers Tests (22 tests)
-- ✅ query: properties - filtering by city, state, zipCode
-- ✅ query: properties - sorting ascending/descending
-- ✅ query: properties - combined filters and sorting
-- ✅ query: property by ID - with weather data and coordinates
-- ✅ query: property by ID - error handling for non-existent ID
-- ✅ mutation: createProperty - automatic weather fetch on creation
-- ✅ mutation: createProperty - validation errors (state format, zipCode format, required fields)
-- ✅ mutation: deleteProperty - success and error cases
-- ✅ mutation: deleteProperty - empty ID validation
-- ✅ GraphQL error handling and error propagation
+#### PropertyResolvers Tests (20 tests)
+- ✅ query: properties - returns all properties without filters
+- ✅ query: properties - filters by city
+- ✅ query: properties - filters by state
+- ✅ query: properties - filters by zipCode
+- ✅ query: properties - sorts by creation date descending
+- ✅ query: properties - sorts by creation date ascending
+- ✅ query: properties - combines filters and sorting
+- ✅ query: properties - returns empty array when no matches
+- ✅ query: property by ID - returns property with all details
+- ✅ query: property by ID - throws error when ID does not exist
+- ✅ query: property by ID - includes weather data
+- ✅ query: property by ID - includes coordinates
+- ✅ mutation: createProperty - creates property with weather data automatically
+- ✅ mutation: createProperty - rejects invalid state format
+- ✅ mutation: createProperty - rejects invalid zipCode format
+- ✅ mutation: createProperty - rejects missing required fields
+- ✅ mutation: createProperty - aborts when weather API fails
+- ✅ mutation: deleteProperty - deletes existing property
+- ✅ mutation: deleteProperty - throws error when property does not exist
+- ✅ mutation: deleteProperty - throws error when id is empty string
 
 #### Integration Tests (2 tests)
 - ✅ End-to-end GraphQL mutation → PostgreSQL persistence verification
