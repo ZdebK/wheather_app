@@ -80,6 +80,18 @@ export class WeatherService implements IWeatherService {
         query: address,
       },
       timeout: this.timeout,
+      // Security headers
+      headers: {
+        'User-Agent': 'WeatherApp/1.0',
+        'Accept': 'application/json',
+      },
+      // Prevent redirect-based attacks
+      maxRedirects: 0,
+      // Limit response size (10MB)
+      maxContentLength: 10 * 1024 * 1024,
+      maxBodyLength: 10 * 1024 * 1024,
+      // Validate response status strictly
+      validateStatus: (status) => status === 200,
     });
 
     if (!response.data.location || !response.data.current) {
