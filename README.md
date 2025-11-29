@@ -100,6 +100,12 @@ npm run dev
 
 Server will start at: `http://localhost:4000/graphql`
 
+### VS Code Debugging
+
+- Use "Launch GraphQL Server (TS)" to run with ts-node and breakpoints.
+- Or use "Start Dev (Nodemon + Inspect)" for auto-reload + debugger.
+- The browser opens automatically at `http://localhost:4000/graphql` in these launch configs.
+
 ### Build for Production
 
 ```bash
@@ -232,14 +238,7 @@ npm run test:coverage
 
 ### Test Coverage
 
-**Test Suites**: 3 passed  
-**Total Tests**: 40 passed
-
-| File | Coverage |
-|------|----------|
-| **weather.service.ts** | 100% statements, branches, functions, lines |
-| **property.service.ts** | 95.23% statements, 100% functions |
-| **property.resolvers.ts** | Full GraphQL API coverage |
+Comprehensive coverage across services, resolvers, and repository.
 
 ### Test Scenarios
 
@@ -280,9 +279,25 @@ npm run test:coverage
 - **Requirement Validation**: Explicit test for "abort operation on weather failure" (Requirement #4)
 - **Naming Convention**: Lowercase describe blocks for consistency
 
-### Integration Tests (TODO)
+### Integration Tests
 
-GraphQL integration tests with test database.
+PostgreSQL-backed GraphQL integration test verifies mutation → DB persistence. By default, integration tests are skipped.
+
+Enable integration tests:
+
+```powershell
+$env:RUN_INTEGRATION_TESTS='true'; npm test
+```
+
+Run only integration tests:
+
+```powershell
+$env:RUN_INTEGRATION_TESTS='true'; npx jest src/__tests__/integration
+```
+
+Notes:
+- Jest loads env and decorators globally via `setupFiles` (dotenv/config, reflect-metadata).
+- Requires Postgres env vars (`.env`) and access to the DB.
 
 ## 📦 Dependencies
 
@@ -311,6 +326,7 @@ GraphQL integration tests with test database.
 ```json
 {
   "dev": "nodemon src/index.ts",
+  "dev:debug": "nodemon --inspect src/index.ts",
   "build": "tsc",
   "start": "node dist/index.js",
   "test": "jest",
