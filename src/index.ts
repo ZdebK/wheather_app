@@ -7,7 +7,7 @@ import { PropertyResolvers } from './resolvers/property.resolvers';
 import logger, { logContext } from './utils/logger';
 import { config, isDevelopment, isTest } from './config';
 
-const 
+const
   // Simple in-memory rate limiter (per-IP) for recruitment task
   createInMemoryRateLimiter = (maxRequests: number, windowMs: number) => {
     type HitRecord = { count: number; reset: number };
@@ -18,7 +18,7 @@ const
         return next();
       }
 
-      const 
+      const
         key = (req.ip || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown') as string,
         now = Date.now(),
         current = hits.get(key),

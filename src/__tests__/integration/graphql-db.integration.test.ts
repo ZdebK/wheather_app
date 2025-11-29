@@ -11,8 +11,9 @@ import { IWeatherService } from '../../services/weather.service';
 // Integration test: GraphQL mutation writes correct data to DB
 
 describe('GraphQL + DB integration', () => {
-  let ds: DataSource;
-  let canRun = true;
+  let 
+    ds: DataSource,
+    canRun = true;
 
   beforeAll(async () => {
     try {
@@ -52,53 +53,50 @@ describe('GraphQL + DB integration', () => {
       return;
     }
     // Arrange: repository with in-memory DB + service with mocked weather
-    const repo = new PropertyRepository(ds);
-
-    const mockWeather: jest.Mocked<IWeatherService> = {
-      fetchWeatherData: jest.fn().mockResolvedValue({
-        weatherData: {
-          temperature: 72,
-          weather_descriptions: ['Sunny'],
-          humidity: 30,
-          wind_speed: 5,
-          observation_time: '12:00 PM',
-          feelslike: 70,
-        },
-        lat: 33.61,
-        long: -111.73,
-      }),
-    } as any;
-
-    const service = new PropertyService(repo as any, mockWeather as any);
-    const resolvers = new PropertyResolvers(service);
-    const rootValue = resolvers.getRootValue();
-
-    const mutation = `
-      mutation CreateProperty($input: CreatePropertyInput!) {
-        createProperty(input: $input) {
-          id
-          street
-          city
-          state
-          zipCode
-          lat
-          long
-          weatherData
+    const 
+      repo = new PropertyRepository(ds),
+      mockWeather: jest.Mocked<IWeatherService> = {
+        fetchWeatherData: jest.fn().mockResolvedValue({
+          weatherData: {
+            temperature: 72,
+            weather_descriptions: ['Sunny'],
+            humidity: 30,
+            wind_speed: 5,
+            observation_time: '12:00 PM',
+            feelslike: 70,
+          },
+          lat: 33.61,
+          long: -111.73,
+        }),
+      } as any,
+      service = new PropertyService(repo as any, mockWeather as any),
+      resolvers = new PropertyResolvers(service),
+      rootValue = resolvers.getRootValue(),
+      mutation = `
+        mutation CreateProperty($input: CreatePropertyInput!) {
+          createProperty(input: $input) {
+            id
+            street
+            city
+            state
+            zipCode
+            lat
+            long
+            weatherData
+          }
         }
-      }
-    `;
-
-    const variables = {
-      input: {
-        street: '15528 E Golden Eagle Blvd',
-        city: 'Fountain Hills',
-        state: 'AZ',
-        zipCode: '85268',
+      `,
+      variables = {
+        input: {
+          street: '15528 E Golden Eagle Blvd',
+          city: 'Fountain Hills',
+          state: 'AZ',
+          zipCode: '85268',
+        },
       },
-    };
 
-    // Act: execute GraphQL mutation
-    const result = await graphql({ schema, source: mutation, variableValues: variables, rootValue });
+      // Act: execute GraphQL mutation
+      result = await graphql({ schema, source: mutation, variableValues: variables, rootValue });
 
     // Assert response
     expect(result.errors).toBeUndefined();
@@ -123,27 +121,24 @@ describe('GraphQL + DB integration', () => {
       return;
     }
 
-    const repo = new PropertyRepository(ds);
-    const mockWeather: jest.Mocked<IWeatherService> = {
-      fetchWeatherData: jest.fn(),
-    } as any;
-
-    const service = new PropertyService(repo as any, mockWeather as any);
-    const resolvers = new PropertyResolvers(service);
-    const rootValue = resolvers.getRootValue();
-
-    const mutation = `
-      mutation DeleteProperty($id: ID!) {
-        deleteProperty(id: $id)
-      }
-    `;
-
-    const variables = {
-      id: '00000000-0000-0000-0000-000000000000', // Valid UUID format that doesn't exist
-    };
-
-    // Act: try to delete non-existent property
-    const result = await graphql({ schema, source: mutation, variableValues: variables, rootValue });
+    const 
+      repo = new PropertyRepository(ds),
+      mockWeather: jest.Mocked<IWeatherService> = {
+        fetchWeatherData: jest.fn(),
+      } as any,
+      service = new PropertyService(repo as any, mockWeather as any),
+      resolvers = new PropertyResolvers(service),
+      rootValue = resolvers.getRootValue(),
+      mutation = `
+        mutation DeleteProperty($id: ID!) {
+          deleteProperty(id: $id)
+        }
+      `,
+      variables = {
+        id: '00000000-0000-0000-0000-000000000000', // Valid UUID format that doesn't exist
+      },
+      // Act: try to delete non-existent property
+      result = await graphql({ schema, source: mutation, variableValues: variables, rootValue });
 
     // Assert: should have error
     expect(result.errors).toBeDefined();

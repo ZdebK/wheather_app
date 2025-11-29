@@ -21,7 +21,7 @@ export class PropertyRepository {
    */
   @HandleErrors
   async create(propertyData: Partial<Property>): Promise<Property> {
-    const 
+    const
       property = this.repository.create(propertyData),
       savedProperty = await this.repository.save(property);
 
@@ -35,7 +35,7 @@ export class PropertyRepository {
   @HandleErrors
   async findAll(filter?: IPropertyFilter, sort?: IPropertySort): Promise<Property[]> {
     let queryBuilder = this.repository.createQueryBuilder('property');
-    
+
     queryBuilder = this.applyFilters(queryBuilder, filter);
     queryBuilder = this.applySorting(queryBuilder, sort);
 

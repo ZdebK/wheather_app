@@ -137,6 +137,146 @@ npm start
 
 ## 🔑 GraphQL Operations
 
+### Quick Start - Testing the API
+
+**Step 1: Start the server**
+```bash
+npm run dev
+```
+Server will be available at: `http://localhost:4000/graphql`
+
+**Step 2: Open GraphQL Playground**
+
+Open your browser and navigate to `http://localhost:4000/graphql`. You'll see the GraphiQL interface.
+
+**Step 3: Create your first property**
+
+Paste this mutation into the left panel:
+
+```graphql
+mutation CreateProperty {
+  createProperty(input: {
+    street: "350 5th Ave"
+    city: "New York"
+    state: "NY"
+    zipCode: "10118"
+  }) {
+    id
+    street
+    city
+    state
+    zipCode
+    weatherData
+    lat
+    long
+    createdAt
+  }
+}
+```
+
+Click the "Execute" button (▶). You should get a response like:
+
+```json
+{
+  "data": {
+    "createProperty": {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "street": "350 5th Ave",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "10118",
+      "weatherData": {
+        "temperature": 45,
+        "weather_descriptions": ["Partly cloudy"],
+        "humidity": 65,
+        "wind_speed": 10,
+        "observation_time": "02:30 PM",
+        "feelslike": 42
+      },
+      "lat": 40.748,
+      "long": -73.986,
+      "createdAt": "2025-11-29T23:30:00.000Z"
+    }
+  }
+}
+```
+
+**Step 4: Query all properties**
+
+```graphql
+query GetAllProperties {
+  properties {
+    id
+    street
+    city
+    state
+    weatherData
+  }
+}
+```
+
+Expected response:
+
+```json
+{
+  "data": {
+    "properties": [
+      {
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "street": "350 5th Ave",
+        "city": "New York",
+        "state": "NY",
+        "weatherData": {
+          "temperature": 45,
+          "weather_descriptions": ["Partly cloudy"],
+          "humidity": 65,
+          "wind_speed": 10,
+          "observation_time": "02:30 PM",
+          "feelslike": 42
+        }
+      }
+    ]
+  }
+}
+```
+
+**Step 5: Query single property by ID**
+
+Copy the `id` from the previous response and use it:
+
+```graphql
+query GetProperty {
+  property(id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890") {
+    id
+    street
+    city
+    weatherData
+    lat
+    long
+  }
+}
+```
+
+**Step 6: Delete a property**
+
+```graphql
+mutation DeleteProperty {
+  deleteProperty(id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+}
+```
+
+Expected response:
+
+```json
+{
+  "data": {
+    "deleteProperty": true
+  }
+}
+```
+
+### Available Operations
+
 ### Queries
 
 - `properties(filter, sort)` - Get all properties with optional filtering/sorting
@@ -147,9 +287,13 @@ npm start
 - `createProperty(input)` - Create new property (fetches weather data)
 - `deleteProperty(id)` - Delete property by ID
 
-### Examples
+### More Examples
 
-See [GRAPHQL_EXAMPLES.md](./GRAPHQL_EXAMPLES.md) for detailed query examples.
+See [GRAPHQL_EXAMPLES.md](./GRAPHQL_EXAMPLES.md) for additional query examples including:
+- Filtering by city, state, zipCode
+- Sorting by creation date (ASC/DESC)
+- Combined filters and sorting
+- Error handling examples
 
 ## 🌦️ Weather Data Integration
 
@@ -231,6 +375,19 @@ Professional TypeScript rules enforced:
 
 Comprehensive automated test suite covering business logic, API integration, and error handling.
 
+### Test File Locations
+
+```
+src/__tests__/
+├── services/
+│   ├── property.service.test.ts      # Property business logic tests (16 tests)
+│   └── weather.service.test.ts       # Weatherstack API integration tests (7 tests)
+├── resolvers/
+│   └── property.resolvers.test.ts    # GraphQL resolver tests (22 tests)
+└── integration/
+    └── graphql-db.integration.test.ts # End-to-end DB persistence tests (2 tests)
+```
+
 ### Running Tests
 
 ```bash
@@ -242,40 +399,58 @@ npm run test:watch
 
 # Run tests with coverage report
 npm run test:coverage
+
+# Run specific test file
+npm test -- property.service.test.ts
+npm test -- weather.service.test.ts
+npm test -- property.resolvers.test.ts
+
+# Run integration tests (requires PostgreSQL)
+$env:RUN_INTEGRATION_TESTS='true'; npm run test:integration
 ```
 
 ### Test Coverage
 
-Comprehensive coverage across services, resolvers, and repository.
-
-### Test Scenarios
+**Total: 47 tests passing**
 
 #### WeatherService Tests (7 tests)
-- ✅ singleton pattern - returns single shared instance
+- ✅ Singleton pattern - returns single shared instance
 - ✅ fetchWeatherData - successful weather data fetch with coordinates
+- ✅ fetchWeatherData - USA-only location validation (rejects non-US addresses)
 - ✅ fetchWeatherData - invalid API response handling
 - ✅ fetchWeatherData - timeout recovery with retry logic (3 attempts, exponential backoff)
 - ✅ fetchWeatherData - 4xx client error handling (no retry)
 - ✅ fetchWeatherData - max retries failure after persistent errors
 
-#### PropertyService Tests (14 tests)
+#### PropertyService Tests (16 tests)
 - ✅ createProperty - property creation with weather data integration
 - ✅ createProperty - input validation (state format, zip code format, required fields)
 - ✅ createProperty - **weather API failure abortion** (Requirement #4 - property not created if weather fetch fails)
-- ✅ getAllProperties - property retrieval with filtering/sorting
+- ✅ getAllProperties - property retrieval with filtering (city, state, zipCode)
+- ✅ getAllProperties - sorting by creation date (ASC/DESC)
 - ✅ getPropertyById - property retrieval by ID
-- ✅ deleteProperty - property deletion (successful, not found scenarios)
-- ✅ error handling for database operations
+- ✅ getPropertyById - empty ID validation
+- ✅ getPropertyById - not found error handling
+- ✅ deleteProperty - successful deletion with ID validation
+- ✅ deleteProperty - empty ID validation (empty string, whitespace)
+- ✅ deleteProperty - not found error handling
+- ✅ deleteProperty - prevents deletion of non-existent properties
 
-#### PropertyResolvers Tests (19 tests)
+#### PropertyResolvers Tests (22 tests)
 - ✅ query: properties - filtering by city, state, zipCode
 - ✅ query: properties - sorting ascending/descending
 - ✅ query: properties - combined filters and sorting
 - ✅ query: property by ID - with weather data and coordinates
-- ✅ mutation: createProperty - automatic weather fetch
+- ✅ query: property by ID - error handling for non-existent ID
+- ✅ mutation: createProperty - automatic weather fetch on creation
 - ✅ mutation: createProperty - validation errors (state format, zipCode format, required fields)
 - ✅ mutation: deleteProperty - success and error cases
-- ✅ GraphQL error handling
+- ✅ mutation: deleteProperty - empty ID validation
+- ✅ GraphQL error handling and error propagation
+
+#### Integration Tests (2 tests)
+- ✅ End-to-end GraphQL mutation → PostgreSQL persistence verification
+- ✅ Prevents deletion of non-existent property (UUID validation, no DB side effects)
 
 ### Key Test Features
 
@@ -283,8 +458,10 @@ Comprehensive coverage across services, resolvers, and repository.
 - **Mocked Dependencies**: axios, repositories isolated for unit testing
 - **GraphQL API Coverage**: All queries and mutations tested with realistic scenarios
 - **Retry Logic Validation**: Confirms 3-attempt retry with exponential backoff (1s, 2s delays)
-- **Error Path Coverage**: Tests 4xx no-retry, 5xx retry behavior
+- **Error Path Coverage**: Tests 4xx no-retry, 5xx retry behavior, ID validation
+- **USA-Only Validation**: Rejects properties outside United States
 - **Requirement Validation**: Explicit test for "abort operation on weather failure" (Requirement #4)
+- **Security Tests**: Empty ID, whitespace ID, non-existent UUID validation
 - **Naming Convention**: Lowercase describe blocks for consistency
 
 ### Integration Tests

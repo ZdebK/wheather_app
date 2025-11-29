@@ -13,7 +13,7 @@ export function HandleErrors(
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: unknown[]) {
-    const 
+    const
       className = target.constructor.name,
       methodName = propertyKey,
       isTest = process.env.NODE_ENV === 'test';

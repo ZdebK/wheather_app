@@ -9,7 +9,7 @@ type ResolversRoot = ReturnType<PropertyResolvers['getRootValue']>;
 jest.mock('../../services/property.service');
 
 describe('PropertyResolvers', () => {
-  let 
+  let
     resolvers: ResolversRoot,
     mockPropertyService: jest.Mocked<PropertyService>,
     propertyResolvers: PropertyResolvers;
